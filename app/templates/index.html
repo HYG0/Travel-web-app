@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create-Travel</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+</head>
+<body>
+
+    <!-- Фиксированное меню -->
+    <header>
+        <nav class="navbar navbar-light">
+            <button class="menu-icon" id="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <span class="navbar-brand mx-auto">Create & Travel</span>
+        </nav>
+
+        <!-- Меню -->
+        <div class="menu-items mt-5" id="menu">
+            <a href="#">MENU</a>
+            <a href="#">ABOUT</a>
+            <a href="#">CONTACT</a>
+        </div>
+    </header>
+
+    <!-- Главная секция -->
+    <div class="row text-cyan text-center py-5 mt-5">
+        <h1>Планировщик путешествий</h1>
+        <p>Создайте свой идеальный маршрут</p>
+    
+
+        <!-- Галерея -->
+        <div id="carouselExample" class="row carousel slide" data-bs-ride="carousel">
+
+            <!-- Слайды с изображениями -->
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="{{ url_for('static', filename='images/first.jpg') }}" alt="1">
+                </div>
+                <div class="carousel-item">
+                    <img src="{{ url_for('static', filename='images/second.jpg') }}" alt="2">
+                </div>
+                <div class="carousel-item">
+                    <img src="{{ url_for('static', filename='images/third.jpg') }}" alt="3">
+                </div>
+            </div>
+
+            <!-- Индикаторы (кружки) -->
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="2"></button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Форма создания плана -->
+    <section class="container my-4">
+        <h2 class="text-center">Спланируй свой путешествие</h2>
+        <form>
+            <div class="mb-3">
+                <label for="destination" class="form-label">Начало путешествия</label>
+                <input type="text" class="form-control" id="destination" placeholder="Откуда">
+            </div>
+            <div class="mb-3">
+                <label for="start-date" class="form-label">Дата начала</label>
+                <input type="date" class="form-control" id="start-date">
+            </div>
+            <div class="mb-3">
+                <label for="end-date" class="form-label">Дата окончания</label>
+                <input type="date" class="form-control" id="end-date">
+            </div>
+            <button type="submit" class="btn btn-cstm-lite-green w-100">Создать план</button>
+        </form>
+    </section>
+
+    <!-- Раздел с блоками-статьями о путешествиях -->
+    <section class="container my-5">
+        <h2 class="text-center">Интересные статьи</h2>
+        <div class="row">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card">
+                    <img src="https://via.placeholder.com/400x250" class="card-img-top" alt="Путешествие">
+                    <div class="card-body">
+                        <h5 class="card-title">Лучшие места для отдыха в 2025</h5>
+                        <p class="card-text">Обзор самых интересных направлений для отдыха в этом году.</p>
+                        <a href="#" class="btn btn-primary">Читать далее</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card">
+                    <img src="https://via.placeholder.com/400x250" class="card-img-top" alt="Путешествие">
+                    <div class="card-body">
+                        <h5 class="card-title">Как собрать чемодан</h5>
+                        <p class="card-text">Полезные советы по упаковке вещей для путешествий.</p>
+                        <a href="#" class="btn btn-primary">Читать далее</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card">
+                    <img src="https://via.placeholder.com/400x250" class="card-img-top" alt="Путешествие">
+                    <div class="card-body">
+                        <h5 class="card-title">Бюджетные путешествия</h5>
+                        <p class="card-text">Как путешествовать дешево и комфортно.</p>
+                        <a href="#" class="btn btn-primary">Читать далее</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Подвал -->
+    <footer class="bg-dark text-white text-center py-3">
+        <p>© 2025 Планировщик путешествий</p>
+    </footer>
+
+    <script>
+        document.getElementById("menu-toggle").addEventListener("click", function() {
+        document.getElementById("menu").classList.toggle("active");
+        });
+    </script>
+</body>
+</html>

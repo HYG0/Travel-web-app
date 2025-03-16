@@ -1,0 +1,149 @@
+
+@import "../../node_modules/bootstrap/scss/functions";
+@import "../../node_modules/bootstrap/scss/variables";
+
+
+$custom-colors: (
+    "cyan": #009688,
+    "cstm-lite-green": #B2DFDB
+    );
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
+@import "../../node_modules/bootstrap/scss/bootstrap.scss";
+
+.navbar {
+    background-color: #f8fdfa; /* Цвет фона */
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 15px;
+    border: 2px solid #B2DFDB;
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    z-index: 1000;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-size: 20px;
+    font-weight: bold;
+    color: #009688;
+}
+
+.navbar-toggler {
+    border: none;
+    color: #B2DFDB;
+}
+
+.navbar-toggler:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.menu-icon {
+    background: #54b5c0;
+    border: none;
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.menu-icon span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: white;
+    transition: 0.3s;
+}
+
+.menu-logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #54b5c0;
+    text-decoration: none;
+}
+
+.menu-items {
+    display: none;
+    flex-direction: column;
+    text-align: left;
+    padding: 20px;
+}
+
+.menu-items a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #009688;
+    font-size: 18px;
+    margin: 5px 0;
+    display: block;
+}
+
+.menu-items a:hover {
+    text-decoration: underline;
+}
+
+/* Показываем меню, если добавлен класс active */
+.menu-items.active {
+    display: flex;
+}
+
+.carousel-item {
+    height: 85vh; /* Фиксированная высота для центрирования */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.carousel-item img {
+    max-height: 100%;
+    width: 100vw;
+    object-fit: cover;
+}
+
+.carousel-inner {
+    justify-content: center;
+}
+
+/* Стили для индикаторов (кружков) */
+.carousel-indicators {
+    position: absolute;
+    bottom: 15px; /* Отступ снизу */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Расстояние между кружками */
+}
+
+.carousel-indicators button {
+    width: 15px; /* Размер неактивных кружков */
+    height: 15px;
+    border-radius: 50%; /* Делаем их круглыми */
+    background-color: rgb(69, 60, 60); /* Цвет неактивных кружков */
+    border: none; /* Убираем рамку */
+    margin: 5px;
+    transition: all 0.3s ease-in-out;
+}
+
+.carousel-indicators .active {
+    width: 30px; /* Увеличенный размер активного кружка */
+    height: 30px;
+    background-color: green; /* Зеленый цвет для активного */
+}

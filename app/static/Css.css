@@ -1,0 +1,98 @@
+.navbar {
+    background-color: #f8fdfa; /* Цвет фона */
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 15px;
+    border: 2px solid #49a89f;
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    z-index: 1000;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-size: 20px;
+    font-weight: bold;
+    color: #049180;
+}
+
+.navbar-toggler {
+    border: none;
+    color: #049180;
+}
+
+.navbar-toggler:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.menu-icon {
+    background: #54b5c0;
+    border: none;
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.menu-icon span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: white;
+    transition: 0.3s;
+}
+
+.menu-logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #54b5c0;
+    text-decoration: none;
+}
+
+.menu-items {
+    display: none;
+    flex-direction: column;
+    text-align: left;
+    padding: 20px;
+}
+
+.menu-items a {
+    text-decoration: none;
+    color: #54b5c0;
+    font-size: 24px;
+    margin: 5px 0;
+    display: block;
+}
+
+.menu-items a:hover {
+    text-decoration: underline;
+}
+
+/* Показываем меню, если добавлен класс active */
+.menu-items.active {
+    display: flex;
+}
+
+.carousel-item {
+    height: 500px; /* Фиксированная высота для центрирования */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.carousel-item img {
+    max-height: 90%;
+    width: auto;
+    object-fit: cover;
+}
