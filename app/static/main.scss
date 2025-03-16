@@ -101,49 +101,37 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
 }
 
 .carousel-item {
-    height: 85vh; /* Фиксированная высота для центрирования */
+    height: 85vh;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .carousel-item img {
-    max-height: 100%;
-    width: 100vw;
+    max-height: 70%;
+    width: auto;
     object-fit: cover;
-}
-
-.carousel-inner {
-    justify-content: center;
 }
 
 /* Стили для индикаторов (кружков) */
 .carousel-indicators {
-    position: absolute;
-    bottom: 15px; /* Отступ снизу */
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 180px; /* Отступ снизу */
+    // transform: translateX(-50%);
     z-index: 2;
-    margin: 0;
-    padding: 0;
-    list-style: none;
     display: flex;
     justify-content: center;
-    gap: 10px; /* Расстояние между кружками */
+    gap: 3vw; /* Расстояние между кружками */
 }
 
-.carousel-indicators button {
-    width: 15px; /* Размер неактивных кружков */
-    height: 15px;
+.carousel-indicators button.round{
+    width: 20px;
+    height: 20px;
     border-radius: 50%; /* Делаем их круглыми */
-    background-color: rgb(69, 60, 60); /* Цвет неактивных кружков */
-    border: none; /* Убираем рамку */
-    margin: 5px;
+    background-color: #B2DFDB; /* Цвет неактивных кружков */
+    border: none;
     transition: all 0.3s ease-in-out;
 }
 
-.carousel-indicators .active {
-    width: 30px; /* Увеличенный размер активного кружка */
-    height: 30px;
-    background-color: green; /* Зеленый цвет для активного */
+.carousel-indicators button.active {
+    background-color: #009688; /* Зеленый цвет для активного */
 }
