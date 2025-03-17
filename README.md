@@ -4,14 +4,13 @@
 1. git clone https://github.com/HYG0/Travel-web-app
 2. git remote add origin https://github.com/HYG0/Travel-web-app
 3. git branch -M main
+4. git pull
 После этих действий у вас должны появиться все файлы с github и ваша main ветка станет связана с удалённой main веткой 
 ## Как работаем совместно:
-1. Создаёте себе ветку на которой вы будете работаете - git checkout -b feature-{название фичи}
-2. Выполняете git push -u origin feture-{название фичи}
-3. После этой команды другой разработчик сможет работать с вашей веткой, сделав git pull
-3. Пишите код на этой ветке
-4. Если всё работает (это ключевое условие), то переходим в ветку main и из неё делаем git merge feature-{название фичи}
-5. После этого выполняем git push из main, тем самым отправив изменения в main ветку на github
+1. Переходите на рабочую ветку *feature-styling-page* - если работаете с frontend'ом или *feature-backend* - если с backend'ом
+2. Пишите код на этой ветке
+3. Делаете commit
+4. Выполняете git push origin для отправки commit'а
 ## Структура
 ![Снимок экрана 2025-03-18 000221 (1)](https://github.com/user-attachments/assets/292810ba-d9fe-4045-919c-0c8ddfd7eb4a)
 - /app - директория проекта
