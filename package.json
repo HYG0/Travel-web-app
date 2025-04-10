@@ -7,9 +7,15 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:css": "sass app/static/main.scss:app/static/main.css",
+    "watch:css": "sass --quiet --watch app/static/main.scss:app/static/main.css",
+    "dev": "concurrently \"npm run watch:css\" \"flask run --host=0.0.0.0 --port=5000 --debug\""
   },
   "dependencies": {
-    "bootstrap": "^5.3.3"
+    "bootstrap": "^5.3.3",
+    "sass": "^1.86.3"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

@@ -1,3 +1,6 @@
 __pycache__/
+app/__pycache__/
 app-venv/
 node_modules/
+*.scss.map
+*.pyc
