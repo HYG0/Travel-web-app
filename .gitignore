@@ -4,5 +4,6 @@ app/__pycache__/
 app-venv/
 .venv/
 node_modules/
+.app/static/main.css
 *.scss.map
 *.pyc
