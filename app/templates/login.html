@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация и Вход</title>
+    <link rel="stylesheet" href="../static/login.css"> <!-- Подключаем CSS -->
+</head>
+<body>
+    <!-- Основной контейнер для формы -->
+    <div class="form-structor">
+        <div id="notification" class="notification">Регистрация успешна!</div>
+        <!-- Контейнер для формы регистрации -->
+        <div class="signup">
+            <h2 class="form-title" id="signup"><span>или</span>Зарегистрироваться</h2>
+            <!-- Поля для ввода данных -->
+            <div class="form-holder">
+                <input type="text" class="input" placeholder="Имя" />
+                <input type="email" class="input" placeholder="Email" />
+                <input type="password" class="input" placeholder="Пароль" />
+            </div>
+            <!-- Кнопка регистрации -->
+            <button class="submit-btn">Зарегистрироваться</button>
+        </div>
+
+        <!-- Контейнер для формы входа -->
+        <div class="login slide-up">
+            <div class="center">
+                <h2 class="form-title" id="login"><span>или</span>Войти</h2>
+                <!-- Поля для входа -->
+                <div class="form-holder">
+                    <input type="email" class="input" placeholder="Email" />
+                    <input type="password" class="input" placeholder="Пароль" />
+                </div>
+                <!-- Кнопка входа -->
+                <button class="submit-btn">Войти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script src="../static/login.css"></script>
+</body>
+</html>
