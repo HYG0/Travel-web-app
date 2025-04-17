@@ -37,11 +37,12 @@
 1. Переходите на рабочую ветку
 `git switch branch-name`
 *feature-styling-page* - если работаете с frontend'ом или *feature-backend* - если с backend'ом
-2. Пишите код на своей ветке
-3. Делаете commit:
-- `git add modified-files` - добавляем изменённые вами файлы, они отображаются в `git status`
-- `git commit -m "commit-name"`- создаём коммит
-- `git push origin branch-name` - отправляем коммит
-4. Проверяете черзе Github, что всё отправилось в удалённый репозиторий
+2. Выполняете `git pull`, чтобы подтянуть последние актуальные изменения
+3. Пишите код на своей ветке
+4. Делаете commit:
+    - `git add modified-files` - добавляем изменённые вами файлы, они отображаются в `git status`
+    - `git commit -m "commit-name"`- создаём коммит
+    - `git push origin branch-name` - отправляем коммит
+5. Проверяете через Github, что всё отправилось в удалённый репозиторий
 
 
