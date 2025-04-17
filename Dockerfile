@@ -7,7 +7,7 @@ RUN apk update && apk add --no-cache bash vim npm nodejs
 RUN npm install -g sass
 
 # Установка зависимостей
-COPY package*.json .
+COPY package*.json ./
 RUN npm install --include=dev
 
 COPY requirements.txt .
