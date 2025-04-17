@@ -13,7 +13,7 @@
     - `source .venv/bin/activate`
 2. Устанавливаем необходимые нам зависимости из корневой директории:
     `pip install -r requirements.txt`
-3. Запускаем скрипт `./script.sh`
+3. Запускаем скрипт `./script.sh`, выдав перед этим ему права для выполнения `chmod +x ./script.sh`
 3. Устанавливаем зависимости npm:
     - `npm install`
 4. Зависимости установлены, можно собирать и запускать контейнер:
@@ -39,9 +39,9 @@
 *feature-styling-page* - если работаете с frontend'ом или *feature-backend* - если с backend'ом
 2. Пишите код на своей ветке
 3. Делаете commit:
-- `git add modified-files` - отображаются в `git status`
-- `git commit -m "commit-name"
-- `git push origin branch-name`
+- `git add modified-files` - добавляем изменённые вами файлы, они отображаются в `git status`
+- `git commit -m "commit-name"`- создаём коммит
+- `git push origin branch-name` - отправляем коммит
 4. Проверяете черзе Github, что всё отправилось в удалённый репозиторий
 
 
