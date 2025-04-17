@@ -1,0 +1,344 @@
+/* Импорт шрифта Fira Sans из Google Fonts */
+@import url("https://fonts.googleapis.com/css?family=Fira+Sans");
+
+/* Основные стили для HTML и body */
+html, body {
+    position: relative;
+    min-height: 100vh; /* Минимальная высота равна высоте окна браузера */
+    background-color: #E1E8EE; /* Цвет фона */
+    display: flex;
+    align-items: center; /* Центрирование по вертикали */
+    justify-content: center; /* Центрирование по горизонтали */
+    font-family: "Fira Sans", Helvetica, Arial, sans-serif; /* Шрифт */
+    -webkit-font-smoothing: antialiased; /* Сглаживание шрифтов для WebKit */
+    -moz-osx-font-smoothing: grayscale; /* Сглаживание шрифтов для Firefox */
+}
+
+/* Основной контейнер для формы */
+.form-structor {
+    background-color: #222; /* Цвет фона контейнера */
+    border-radius: 15px; /* Закруглённые углы */
+    height: 550px; /* Высота контейнера */
+    width: 350px; /* Ширина контейнера */
+    position: relative; /* Относительное позиционирование */
+    overflow: hidden; /* Скрытие содержимого, выходящего за пределы контейнера */
+}
+
+/* Псевдоэлемент для фонового изображения */
+.form-structor::after {
+    content: '';
+    opacity: 0.8; /* Прозрачность фона */
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-repeat: no-repeat; /* Фон не повторяется */
+    background-position: left bottom; /* Позиция фона */
+    background-size: 500px; /* Размер фона */
+    background-image: url('../static/images/background_reg.jpg'); /* Фоновое изображение */
+}
+
+/* Стили для формы регистрации */
+.signup {
+    position: absolute;
+    top: 50%; /* Позиция по вертикали */
+    left: 50%; /* Позиция по горизонтали */
+    transform: translate(-50%, -50%); /* Центрирование */
+    width: 65%; /* Ширина формы */
+    z-index: 5; /* Уровень слоя */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Анимация для формы регистрации при активации */
+.signup.slide-up {
+    top: 5%; /* Сдвиг вверх */
+    transform: translate(-50%, 0%); /* Центрирование по горизонтали */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Скрытие элементов формы при активации */
+.signup.slide-up .form-holder,
+.signup.slide-up .submit-btn {
+    opacity: 0; /* Прозрачность */
+    visibility: hidden; /* Скрытие */
+}
+
+/* Стили для заголовка формы при активации */
+.signup.slide-up .form-title {
+    font-size: 1em; /* Размер шрифта */
+    cursor: pointer; /* Курсор в виде указателя */
+}
+
+/* Стили для текста в заголовке при активации */
+.signup.slide-up .form-title span {
+    margin-right: 5px; /* Отступ справа */
+    opacity: 1; /* Прозрачность */
+    visibility: visible; /* Видимость */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Заголовок формы регистрации */
+.signup .form-title {
+    color: #fff;
+    font-size: 1.7em;
+    text-align: center; /* Центрируем текст */
+    display: flex;
+    flex-direction: column; /* Размещаем элементы вертикально */
+    align-items: center; /* Центрируем внутри flex-контейнера */
+    justify-content: center; /* Выравниваем по центру */
+    padding: 0;
+    margin: 0;
+}
+/* Стили для текста в заголовке */
+.signup .form-title span {
+    color: rgba(0, 0, 0, 0.4); /* Цвет текста */
+    opacity: 0; /* Прозрачность */
+    visibility: hidden; /* Скрытие */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Контейнер для полей ввода */
+.signup .form-holder {
+    border-radius: 15px; /* Закруглённые углы */
+    background-color: #fff; /* Цвет фона */
+    overflow: hidden; /* Скрытие содержимого, выходящего за пределы */
+    margin-top: 50px; /* Отступ сверху */
+    opacity: 1; /* Прозрачность */
+    visibility: visible; /* Видимость */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Стили для полей ввода */
+.signup .form-holder .input {
+    border: 0; /* Убираем границу */
+    outline: none; /* Убираем обводку */
+    box-shadow: none; /* Убираем тень */
+    display: block; /* Блочный элемент */
+    height: 30px; /* Высота */
+    line-height: 30px; /* Высота строки */
+    padding: 8px 15px; /* Внутренние отступы */
+    border-bottom: 1px solid #eee; /* Граница снизу */
+    width: 100%; /* Ширина */
+    font-size: 12px; /* Размер шрифта */
+}
+
+/* Убираем границу у последнего поля ввода */
+.signup .form-holder .input:last-child {
+    border-bottom: 0;
+}
+
+/* Стили для плейсхолдера */
+.signup .form-holder .input::-webkit-input-placeholder {
+    color: rgba(0, 0, 0, 0.4); /* Цвет плейсхолдера */
+}
+
+/* Стили для кнопки отправки */
+.signup .submit-btn {
+    background-color: rgba(176, 224, 230, 0.3); /* Цвет фона */
+    color: rgba(255, 255, 255, 0.7); /* Цвет текста */
+    border: 0; /* Убираем границу */
+    border-radius: 15px; /* Закруглённые углы */
+    display: block; /* Блочный элемент */
+    margin: 15px auto; /* Отступы */
+    padding: 15px 45px; /* Внутренние отступы */
+    width: 100%; /* Ширина */
+    font-size: 13px; /* Размер шрифта */
+    font-weight: bold; /* Жирный шрифт */
+    cursor: pointer; /* Курсор в виде указателя */
+    opacity: 1; /* Прозрачность */
+    visibility: visible; /* Видимость */
+    transition: all 0.3s ease; /* Плавный переход */
+
+}
+
+/* Стили для кнопки при наведении */
+.signup .submit-btn:hover {
+    background-color: rgba(175, 238, 238, 0.5); /* Цвет фона при наведении */
+}
+
+/* Стили для формы входа */
+.login {
+    position: absolute;
+    top: 20%; /* Позиция по вертикали */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #fff; /* Цвет фона */
+    z-index: 5; /* Уровень слоя */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Псевдоэлемент для формы входа */
+.login::before {
+    content: '';
+    position: absolute;
+    left: 50%; /* Позиция по горизонтали */
+    top: -20px; /* Позиция по вертикали */
+    transform: translate(-50%, 0); /* Центрирование */
+    background-color: #fff; /* Цвет фона */
+    width: 200%; /* Ширина */
+    height: 250px; /* Высота */
+    border-radius: 50%; /* Закруглённые углы */
+    z-index: 4; /* Уровень слоя */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Центрирование содержимого формы входа */
+.login .center {
+    position: absolute;
+    top: calc(50% - 10%); /* Позиция по вертикали */
+    left: 50%; /* Позиция по горизонтали */
+    transform: translate(-50%, -50%); /* Центрирование */
+    width: 65%; /* Ширина */
+    z-index: 5; /* Уровень слоя */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Заголовок формы входа */
+.login .center .form-title {
+    color: #000; /* Цвет текста */
+    font-size: 1.7em; /* Размер шрифта */
+    text-align: center; /* Выравнивание по центру */
+
+   display: flex;
+  flex-direction: column; /* Размещаем элементы вертикально */
+    align-items: center; /* Центрируем внутри flex-контейнера */
+    justify-content: center; /* Выравниваем по центру */
+    padding: 0;
+    margin: 0;
+
+}
+
+/* Стили для текста в заголовке */
+.login .center .form-title span {
+    color: rgba(0, 0, 0, 0.4); /* Цвет текста */
+    opacity: 0; /* Прозрачность */
+    visibility: hidden; /* Скрытие */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Контейнер для полей ввода */
+.login .center .form-holder {
+    border-radius: 15px; /* Закруглённые углы */
+    background-color: #fff; /* Цвет фона */
+    border: 1px solid #eee; /* Граница */
+    overflow: hidden; /* Скрытие содержимого, выходящего за пределы */
+    margin-top: 50px; /* Отступ сверху */
+    opacity: 1; /* Прозрачность */
+    visibility: visible; /* Видимость */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Стили для полей ввода */
+.login .center .form-holder .input {
+    border: 0; /* Убираем границу */
+    outline: none; /* Убираем обводку */
+    box-shadow: none; /* Убираем тень */
+    display: block; /* Блочный элемент */
+    height: 30px; /* Высота */
+    line-height: 30px; /* Высота строки */
+    padding: 8px 15px; /* Внутренние отступы */
+    border-bottom: 1px solid #eee; /* Граница снизу */
+    width: 100%; /* Ширина */
+    font-size: 12px; /* Размер шрифта */
+}
+
+/* Убираем границу у последнего поля ввода */
+.login .center .form-holder .input:last-child {
+    border-bottom: 0;
+}
+
+/* Стили для плейсхолдера */
+.login .center .form-holder .input::-webkit-input-placeholder {
+    color: rgba(0, 0, 0, 0.4); /* Цвет плейсхолдера */
+}
+
+/* Стили для кнопки отправки */
+.login .center .submit-btn {
+    background-color: #6B92A4; /* Цвет фона */
+    color: rgba(255, 255, 255, 0.7); /* Цвет текста */
+    border: 0; /* Убираем границу */
+    border-radius: 15px; /* Закруглённые углы */
+    display: block; /* Блочный элемент */
+    margin: 15px auto; /* Отступы */
+    padding: 15px 45px; /* Внутренние отступы */
+    width: 100%; /* Ширина */
+    font-size: 13px; /* Размер шрифта */
+    font-weight: bold; /* Жирный шрифт */
+    cursor: pointer; /* Курсор в виде указателя */
+    opacity: 1; /* Прозрачность */
+    visibility: visible; /* Видимость */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Стили для кнопки при наведении */
+.login .center .submit-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8); /* Цвет фона при наведении */
+}
+
+/* Анимация для формы входа при активации */
+.login.slide-up {
+    top: 90%; /* Сдвиг вниз */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Центрирование содержимого при активации */
+.login.slide-up .center {
+    top: 10%; /* Позиция по вертикали */
+    transform: translate(-50%, 0%); /* Центрирование по горизонтали */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Скрытие элементов формы при активации */
+.login.slide-up .form-holder,
+.login.slide-up .submit-btn {
+    opacity: 0; /* Прозрачность */
+    visibility: hidden; /* Скрытие */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Стили для заголовка формы при активации */
+.login.slide-up .form-title {
+    font-size: 1em; /* Размер шрифта */
+    margin: 0; /* Убираем отступы */
+    padding: 0; /* Убираем отступы */
+    cursor: pointer; /* Курсор в виде указателя */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Стили для текста в заголовке при активации */
+.login.slide-up .form-title span {
+    margin-right: 5px; /* Отступ справа */
+    opacity: 1; /* Прозрачность */
+    visibility: visible; /* Видимость */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+
+/* Стили для уведомления */
+.notification {
+    position: fixed;
+    top: -100px; /* Изначально скрыто за пределами экрана */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50; /* Зеленый цвет для успеха */
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    font-weight: bold;
+    transition: top 0.5s ease-in-out, opacity 0.5s;
+    opacity: 0;
+}
+
+/* Активное состояние (появление уведомления) */
+.notification.show {
+    top: 20px; /* Опускаем вниз */
+    opacity: 1;
+}
+/* Стили для уведомления об ошибке (красный цвет) */
+.notification.error {
+    background-color: #ff4444; /* Красный цвет для ошибки */
+}
