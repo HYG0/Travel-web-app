@@ -6,3 +6,4 @@ node_modules/
 app/static/main.css
 *.scss.map
 *.pyc
+*min.js

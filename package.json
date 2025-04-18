@@ -8,6 +8,8 @@
   "main": "index.js",
   "scripts": {
     "build:css": "sass app/static/main.scss:app/static/main.css",
+    "copy:bootstrap": "cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js app/static/js/bootstrap.bundle.min.js",
+    "build": "npm run build:css && npm run copy:bootstrap",
     "watch:css": "sass --quiet --watch app/static/main.scss:app/static/main.css",
     "dev": "concurrently \"npm run watch:css\" \"flask run --host=0.0.0.0 --port=5000 --debug\""
   },
