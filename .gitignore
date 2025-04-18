@@ -3,7 +3,7 @@ app/__pycache__/
 .venv/
 app-venv/
 node_modules/
-app/static/main.css
-*.scss.map
+app/static/css/main.css
+*.map
 *.pyc
 *min.js
