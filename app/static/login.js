@@ -76,7 +76,12 @@ signupSubmitBtn.addEventListener('click', () => {
     if (nameInput.value.trim() === '' || emailInput.value.trim() === '' || passwordInput.value.trim() === '') {
         // Если хотя бы одно поле не заполнено, показываем сообщение об ошибке
         showNotification('Пожалуйста, заполните все поля!', true); // isError = true
-    } else {
+    } 
+    // Проверка корректности Email
+    else if (!emailInput.value.includes('@')) {
+        // Если в Email нет символа @, показываем ошибку
+        showNotification('Некорректный Email! Введите правильный адрес.', true);}
+    else {
         // Если все поля заполнены, показываем сообщение об успешной регистрации
         showNotification('Вы успешно зарегистрированы!');
 
@@ -84,6 +89,25 @@ signupSubmitBtn.addEventListener('click', () => {
         setTimeout(() => {
             signupBtn.parentNode.classList.add('slide-up');
             loginBtn.parentNode.parentNode.classList.remove('slide-up');
+        }, 1500);
+    }
+});
+
+//обработчик кнопки "Войти"
+const loginSubmitBtn = document.querySelector('.login .submit-btn');
+loginSubmitBtn.addEventListener('click', () => {
+    const emailInput = document.querySelector('.login .form-holder input[type="email"]');
+    const passwordInput = document.querySelector('.login .form-holder input[type="password"]');
+
+    if (emailInput.value.trim() === '' || passwordInput.value.trim() === '') {
+        showNotification('Пожалуйста, заполните все поля для входа!', true);
+    } else if (!emailInput.value.includes('@')) {
+        showNotification('Некорректный Email для входа! Введите правильный адрес.', true);
+    } else {
+        showNotification('Успешный вход!');
+
+        setTimeout(() => {
+            window.location.href = '/index';  // <-- Переход на главную через 1.5 сек
         }, 1500);
     }
 });
