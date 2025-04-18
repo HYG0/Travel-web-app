@@ -36,7 +36,7 @@ html, body {
     background-repeat: no-repeat; /* Фон не повторяется */
     background-position: left bottom; /* Позиция фона */
     background-size: 500px; /* Размер фона */
-    background-image: url('../static/images/background_reg.jpg'); /* Фоновое изображение */
+    background-image: url('../../static/images/background_reg.jpg'); /* Фоновое изображение */
 }
 
 /* Стили для формы регистрации */
