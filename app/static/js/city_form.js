@@ -6,24 +6,63 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function updateDateLimits() {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date();
+    const todayFormatted = formatDateForInput(today);
+    const maxDate = "2100-12-31";
+
     document.querySelectorAll('.date-input').forEach(input => {
-        input.min = today;
-        input.max = "2100-12-31";
-        input.addEventListener("change", () => validateDateInput(input));
+        // Устанавливаем атрибуты min/max
+        input.min = todayFormatted;
+        input.max = maxDate;
+
+        // Обработчики событий
+        input.addEventListener('change', validateDateInput);
+        input.addEventListener('input', handleManualDateInput);
     });
 }
 
-function validateDateInput(input) {
+function formatDateForInput(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function handleManualDateInput(e) {
+    const input = e.target;
+    // Разрешаем временно неполные даты при вводе
+    if (!input.value) return;
+
+    // Проверяем, что ввод соответствует формату даты
+    if (/^\d{4}-\d{2}-\d{2}$/.test(input.value)) {
+        validateDateInput(e);
+    }
+}
+
+function validateDateInput(e) {
+    const input = e.target;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const maxDate = new Date(2100, 11, 31);
-    let enteredDate = new Date(input.value);
 
-    if (isNaN(enteredDate) || enteredDate < today) {
-        input.value = today.toISOString().split("T")[0];
-    } else if (enteredDate > maxDate) {
-        input.value = maxDate.toISOString().split("T")[0];
+    if (!input.value) {
+        input.classList.remove('is-invalid');
+        return;
+    }
+
+    try {
+        const inputDate = new Date(input.value);
+        inputDate.setHours(0, 0, 0, 0);
+
+        if (inputDate < today) {
+            input.classList.add('is-invalid');
+            // Не сбрасываем значение сразу, даем закончить ввод
+        } else {
+            input.classList.remove('is-invalid');
+            // Форматируем дату правильно
+            input.value = formatDateForInput(inputDate);
+        }
+    } catch {
+        input.classList.add('is-invalid');
     }
 }
 
@@ -56,26 +95,24 @@ function removeFlight(button) {
 
 async function fetchCitySuggestions(input) {
     const query = input.value.trim();
-    if (query.length < 2) return;
+    const suggestionsList = input.nextElementSibling;
 
-    const username = "matvix"; // Замените на ваш GeoNames username
-    const urlRussia = `http://api.geonames.org/searchJSON?q=${query}&maxRows=5&country=RU&lang=ru&username=${username}`; // Для России
-    const urlWorld = `http://api.geonames.org/searchJSON?q=${query}&maxRows=5&lang=ru&username=${username}`; // Для всего мира
+    // Очищаем подсказки, если строка пустая или меньше 2 символов
+    if (query.length < 2) {
+        suggestionsList.innerHTML = "";
+        return;
+    }
+
+    const API_KEY = 'd8e72d7f0bbc4c86b1f2d65d6be067c9';
+    const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=${API_KEY}&type=city&lang=ru`;
 
     try {
-        // Сначала запрашиваем города России
-        const responseRussia = await fetch(urlRussia);
-        const dataRussia = await responseRussia.json();
-
-        // Затем запрашиваем города по всему миру
-        const responseWorld = await fetch(urlWorld);
-        const dataWorld = await responseWorld.json();
-
-        // Сначала показываем города России, потом города мира
-        const cities = [...dataRussia.geonames, ...dataWorld.geonames];
-        showSuggestions(input, cities);
+        const response = await fetch(url);
+        const data = await response.json();
+        showSuggestions(input, data.features);
     } catch (error) {
         console.error("Ошибка загрузки городов:", error);
+        suggestionsList.innerHTML = ""; // Очищаем при ошибке
     }
 }
 
