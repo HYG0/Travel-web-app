@@ -12032,12 +12032,10 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+/* Навигация */
 .navbar {
-  background-color: #f8fdfa; /* Цвет фона */
+  background-color: #f8fdfa;
   padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   border-radius: 15px;
   border: 2px solid #B2DFDB;
   position: fixed;
@@ -12056,16 +12054,6 @@ textarea.form-control-lg {
   color: #009688;
 }
 
-.navbar-toggler {
-  border: none;
-  color: #B2DFDB;
-}
-
-.navbar-toggler:focus {
-  outline: none;
-  box-shadow: none;
-}
-
 .menu-icon {
   background: #54b5c0;
   border: none;
@@ -12073,11 +12061,9 @@ textarea.form-control-lg {
   width: 40px;
   height: 40px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 5px;
   flex-direction: column;
   gap: 5px;
+  border-radius: 5px;
 }
 
 .menu-icon span {
@@ -12088,72 +12074,83 @@ textarea.form-control-lg {
   transition: 0.3s;
 }
 
-.menu-logo {
-  font-size: 24px;
-  font-weight: bold;
-  color: #54b5c0;
-  text-decoration: none;
-}
-
 .menu-items {
   display: none;
   flex-direction: column;
-  text-align: left;
   padding: 20px;
 }
 
-.menu-items a {
-  text-decoration: none;
-  font-weight: bold;
-  color: #009688;
-  font-size: 18px;
-  margin: 5px 0;
-  display: block;
-}
-
-.menu-items a:hover {
-  text-decoration: underline;
-}
-
-/* Показываем меню, если добавлен класс active */
 .menu-items.active {
   display: flex;
 }
 
-.carousel-item {
-  height: 85vh;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Карусель */
+#entry-page-carousel {
+  width: 90%; /* Было 100%, теперь 90% от экрана */
+  max-width: 350px; /* Фиксированная максимальная ширина */
+  margin: 0 auto; /* Центрирование */
+  height: 50vh; /* Сохраняем пропорции */
+  border-radius: 15px; /* Закругленные углы */
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Тень для красоты */
+}
+
+.carousel-inner, .carousel-item {
+  height: 100%;
+  width: 100%;
 }
 
 .carousel-item img {
-  max-height: 70%;
-  width: auto;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-/* Стили для индикаторов (кружков) */
 .carousel-indicators {
-  bottom: 180px; /* Отступ снизу */
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  gap: 3vw; /* Расстояние между кружками */
+  bottom: 15px;
 }
 
-.carousel-indicators button.round {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%; /* Делаем их круглыми */
-  background-color: #B2DFDB; /* Цвет неактивных кружков */
+.carousel-indicators [data-bs-target] {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  margin: 0 6px;
+  padding: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-indicators button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #B2DFDB;
   border: none;
-  transition: all 0.3s ease-in-out;
 }
 
-.carousel-indicators button.active {
-  background-color: #009688; /* Зеленый цвет для активного */
+.carousel-indicators .active {
+  background-color: #009688;
+  width: 12px;
+  height: 12px;
+  box-shadow: 0 0 0 2px white, 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Форма и карточки */
+.btn-cstm-lite-green {
+  background-color: #B2DFDB;
+  color: #000;
+}
+
+.card {
+  margin-bottom: 20px;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Подвал */
+footer {
+  margin-top: 50px;
 }
 
 /*# sourceMappingURL=main.css.map */
