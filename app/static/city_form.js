@@ -58,42 +58,33 @@ async function fetchCitySuggestions(input) {
     const query = input.value.trim();
     if (query.length < 2) return;
 
-    const username = "matvix"; // Замените на ваш GeoNames username
-    const urlRussia = `http://api.geonames.org/searchJSON?q=${query}&maxRows=5&country=RU&lang=ru&username=${username}`; // Для России
-    const urlWorld = `http://api.geonames.org/searchJSON?q=${query}&maxRows=5&lang=ru&username=${username}`; // Для всего мира
+    const API_KEY = 'd8e72d7f0bbc4c86b1f2d65d6be067c9'; // Ваш ключ Geoapify
+    const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=${API_KEY}&type=city&lang=ru`;
 
     try {
-        // Сначала запрашиваем города России
-        const responseRussia = await fetch(urlRussia);
-        const dataRussia = await responseRussia.json();
-
-        // Затем запрашиваем города по всему миру
-        const responseWorld = await fetch(urlWorld);
-        const dataWorld = await responseWorld.json();
-
-        // Сначала показываем города России, потом города мира
-        const cities = [...dataRussia.geonames, ...dataWorld.geonames];
-        showSuggestions(input, cities);
+        const response = await fetch(url);
+        const data = await response.json();
+        showSuggestions(input, data.features);
     } catch (error) {
         console.error("Ошибка загрузки городов:", error);
     }
 }
 
-
 function showSuggestions(input, cities) {
     const suggestionsList = input.nextElementSibling;
-    suggestionsList.innerHTML = ""; // Очищаем старые подсказки
+    suggestionsList.innerHTML = "";
 
     cities.forEach(city => {
         const li = document.createElement("li");
-        li.textContent = `${city.name}, ${city.countryName}`;  // Отображаем название города и страну
+        li.textContent = `${city.properties.city || city.properties.name}, ${city.properties.country}`;
         li.addEventListener("click", () => {
-            input.value = city.name; // Вставляем выбранный город в поле
-            suggestionsList.innerHTML = ""; // Очищаем список подсказок
+            input.value = city.properties.city || city.properties.name;
+            suggestionsList.innerHTML = "";
         });
-        suggestionsList.appendChild(li); // Добавляем элемент в список подсказок
+        suggestionsList.appendChild(li);
     });
 }
+
 function goNext() {
     const flightCards = document.querySelectorAll('.flight-card');
     const flights = [];
@@ -112,4 +103,3 @@ function goNext() {
     localStorage.setItem("flights", JSON.stringify(flights));
     window.location.href = "/routes";
 }
-
