@@ -17,6 +17,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Сборка CSS
-RUN npm run build:css
+RUN npm run build
 
 CMD [ "npm", "run", "dev" ]

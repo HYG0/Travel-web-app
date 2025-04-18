@@ -1,7 +1,9 @@
 __pycache__/
 app/__pycache__/
-app-venv/
 .venv/
+app-venv/
 node_modules/
-*.scss.map
+app/static/css/main.css
+*.map
 *.pyc
+*min.js
