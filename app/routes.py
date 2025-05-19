@@ -18,3 +18,7 @@ def city_form():
 @app.route('/routes')
 def routes():
   return render_template('fly_routes.html')
+
+@app.route('/about')
+def about():
+  return render_template('about.html')

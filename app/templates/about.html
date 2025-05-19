@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>О проекте</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      background: #009688;
+      color: #fff;
+      padding: 20px 40px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    section {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    section h2 {
+      font-size: 26px;
+      margin-bottom: 10px;
+      color: #009688;
+    }
+
+    .team, .tech-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .member, .tech-item {
+      flex: 1 1 180px;
+      background: #e0f2f1;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .member:hover, .tech-item:hover {
+      transform: scale(1.03);
+    }
+
+    .member h3, .tech-item h3 {
+      margin: 10px 0 5px;
+      font-size: 18px;
+      color: #00695c;
+    }
+
+    .member p {
+      margin: 0;
+      font-size: 14px;
+      color: #444;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #888;
+    }
+
+    .back-button {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #009688;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+      background-color: #00796b;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>О нашем проекте</h1>
+  </header>
+
+  <section>
+    <h2>Что мы делаем?</h2>
+    <p>
+      Наш проект — это современный <strong>планировщик путешествий</strong>, созданный для тех, кто хочет превратить мечты о поездках в реальность. Мы объединяем вдохновение, информацию и удобные инструменты в одной платформе, чтобы сделать планирование путешествий простым, увлекательным и максимально эффективным.
+    </p>
+    <p>
+      Мы верим, что каждое путешествие — это маленькое приключение, и хотим сделать так, чтобы к нему можно было подготовиться легко, уверенно и с удовольствием.
+    </p>
+  </section>
+
+  <section>
+    <h2>Наша команда</h2>
+    <div class="team">
+      <div class="member">
+        <h3>Егор</h3>
+        <p>Тимлид</p>
+      </div>
+      <div class="member">
+        <h3>Матвей</h3>
+        <p>Frontend-разработчик</p>
+      </div>
+      <div class="member">
+        <h3>Ярослав</h3>
+        <p>Frontend-разработчик</p>
+      </div>
+      <div class="member">
+        <h3>Артём</h3>
+        <p>Backend-разработчик</p>
+      </div>
+      <div class="member">
+        <h3>Дмитрий</h3>
+        <p>Backend-разработчик</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Технологии, которые мы используем</h2>
+    <div class="tech-list">
+      <div class="tech-item">
+        <h3>Python</h3>
+      </div>
+      <div class="tech-item">
+        <h3>Flask</h3>
+      </div>
+      <div class="tech-item">
+        <h3>JavaScript</h3>
+      </div>
+      <div class="tech-item">
+        <h3>Sass</h3>
+      </div>
+      <div class="tech-item">
+        <h3>SQLite</h3>
+      </div>
+      <div class="tech-item">
+        <h3>Bootstrap</h3>
+      </div>
+    </div>
+  </section>
+
+  <div style="text-align: center; margin: 40px 0;">
+    <a href="/index" class="back-button">← Назад на главную</a>
+  </div>
+
+  <footer>
+    &copy; 2025 Наша Команда. Все права защищены.
+  </footer>
+
+</body>
+</html>

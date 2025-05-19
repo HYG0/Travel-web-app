@@ -44,6 +44,8 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
     flex-direction: column;
     gap: 5px;
     border-radius: 5px;
+    align-items: center;      // Центр по горизонтали
+    justify-content: center;  // Центр по вертикали
 }
 
 .menu-icon span {
@@ -57,11 +59,49 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
 .menu-items {
     display: none;
     flex-direction: column;
-    padding: 20px;
+    background-color: #f8fdfa;
+    border-radius: 0 0 15px 15px;
+    border: 2px solid #B2DFDB;
+    border-top: none;
+    position: fixed;
+    top: 70px; /* Позиция под навбаром */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    padding: 10px 20px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+}
+
+.menu-items a {
+    color: #009688; 
+    font-weight: bold;
+    font-size: 17px;
+    text-decoration: none;
+    margin-bottom: 0;
+    transition: color 0.3s;
+}
+.menu-items a:first-child {
+    margin-top: 15px;
+}
+.menu-items a + a {
+    margin-top: 5px;
+}
+
+.menu-items a:hover {
+    color: #016055; // немного темнее при наведении (по желанию)
 }
 
 .menu-items.active {
     display: flex;
+}
+.container.col.text-cyan.text-center {
+    padding-top: 80px !important; /* Уменьшенный отступ сверху */
+}
+.content-shifted {
+    margin-top: 140px !important; /* Сдвиг при открытом меню */
+    transition: margin-top 0.3s ease;
 }
 
 /* Карусель */
@@ -109,17 +149,13 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
 }
 
 .carousel-indicators .active {
-    background-color: #009688;
+    background-color: transparent;
     width: 12px;
     height: 12px;
     box-shadow: 0 0 0 2px white, 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Форма и карточки */
-.btn-cstm-lite-green {
-    background-color: #B2DFDB;
-    color: #000;
-}
+
 
 .card {
     margin-bottom: 20px;

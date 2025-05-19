@@ -21,15 +21,15 @@
         </nav>
 
         <!-- Меню -->
-        <div class="menu-items mt-5" id="menu">
-            <a href="#">MENU</a>
-            <a href="#">ABOUT</a>
-            <a href="#">CONTACT</a>
+        <div class="menu-items" id="menu">
+            <a href="/entry">МАРШРУТ</a>
+            <a href="#">КАРТА</a>
+            <a href="/about">О ПРОЕКТЕ</a>
         </div>
     </header>
 
     <!-- Главная секция -->
-    <div class="container col text-cyan text-center py-5 mt-5">
+    <div class="container col text-cyan text-center py-5 mt-3">
         <h1>Планировщик путешествий</h1>
         <p>Создайте свой идеальный маршрут</p>
     
@@ -52,35 +52,8 @@
                     <img src="{{ url_for('static', filename='images/third.jpg') }}" class="d-block w-100" alt="3">
                 </div>
             </div>
-            
-            <button class="carousel-control-prev" type="button" data-bs-target="#entry-page-carousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon"></span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#entry-page-carousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon"></span>
-            </button>
         </div>
     </div>
-
-    <!-- Форма создания плана -->
-    <section class="container my-4">
-        <h2 class="text-center">Спланируй свой путешествие</h2>
-        <form>
-            <div class="mb-3">
-                <label for="destination" class="form-label">Начало путешествия</label>
-                <input type="text" class="form-control" id="destination" placeholder="Откуда">
-            </div>
-            <div class="mb-3">
-                <label for="start-date" class="form-label">Дата начала</label>
-                <input type="date" class="form-control" id="start-date">
-            </div>
-            <div class="mb-3">
-                <label for="end-date" class="form-label">Дата окончания</label>
-                <input type="date" class="form-control" id="end-date">
-            </div>
-            <button type="submit" class="btn btn-cstm-lite-green w-100">Создать план</button>
-        </form>
-    </section>
 
     <!-- Раздел с блоками-статьями -->
     <section class="container my-5">
@@ -127,16 +100,46 @@
     <!-- Подключаем JS в конце body -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Меню
-        document.getElementById("menu-toggle").addEventListener("click", function() {
-            document.getElementById("menu").classList.toggle("active");
-        });
+     // Меню и элементы
+    const menu = document.getElementById("menu");
+    const menuToggle = document.getElementById("menu-toggle");
+    const mainContent = document.querySelector('.container.col.text-cyan.text-center');
+    const carousel = document.getElementById('entry-page-carousel');
+    let isCarouselAnimating = false;
 
-        // Инициализация карусели
-        var myCarousel = new bootstrap.Carousel(document.getElementById('entry-page-carousel'), {
-            interval: 3000,
-            wrap: true
-        });
+    // Закрыто по умолчанию
+    menu.classList.remove("active");
+
+    // Отслеживаем анимацию карусели (оставляем для других возможных нужд)
+    carousel.addEventListener('slide.bs.carousel', function() {
+        isCarouselAnimating = true;
+    });
+    
+    carousel.addEventListener('slid.bs.carousel', function() {
+        isCarouselAnimating = false;
+    });
+
+    // Обработчик клика по меню
+    menuToggle.addEventListener("click", function() {
+        const isAtTop = window.pageYOffset < 50;
+        menu.classList.toggle("active");
+        
+        // Сдвигаем контент только если открыли меню вверху страницы
+        if (isAtTop) {
+            mainContent.classList.toggle("content-shifted", menu.classList.contains("active"));
+        } else {
+            mainContent.classList.remove("content-shifted");
+        }
+    });
+
+    // Карусель (без изменений)
+    var myCarousel = new bootstrap.Carousel(document.getElementById('entry-page-carousel'), {
+        interval: 3000,
+        wrap: true
+    });
+    
+
+    
     </script>
 </body>
 </html>
