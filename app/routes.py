@@ -134,8 +134,6 @@ def register_routes(app):
             return "Too mucn requests to API"
 
         data = response.json()
-        for item in data:
-          print(item['name'])
 
         results = []
         for item in data:

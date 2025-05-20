@@ -302,7 +302,7 @@ function fetchCitySuggestions(input) {
                     suggestionsList.appendChild(li);
                 });
             });
-    }, 300);
+    }, 200);
 }
 
 function attachCityAutocompleteEvents(inputs) {
