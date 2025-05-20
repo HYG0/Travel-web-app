@@ -8,10 +8,12 @@ run-dev:
 		-e FLASK_APP=run.py \
 		-e FLASK_ENV=development \
 		-e FLASK_DEBUG=1 \
+		-e SASS_WATCH=true \
 		--name app-dev -d travel-web-app:v0.1
 
 	sleep 2
 	docker logs -f app-dev
+	docker cp app-dev:/travel-app/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js ./app/static/js/
 
 
 stop:
