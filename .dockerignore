@@ -1,0 +1,10 @@
+__pycache__/
+app-venv/
+node_modules/
+*.pyc
+*.scss.map
+app/__pycache__/
+.git
+.gitignore
+.dockerignore
+.idea/

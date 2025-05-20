@@ -1,3 +1,10 @@
 __pycache__/
+app/__pycache__/
+.venv/
 app-venv/
 node_modules/
+app/static/css/main.css
+*.map
+*.pyc
+*min.js
+.idea/

@@ -1,0 +1,158 @@
+body {
+    background-color: #007bff;
+    color: white;
+}
+
+.title-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: 2px solid white;
+    border-radius: 10px;
+    background: transparent;
+    color: white;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.3);
+}
+
+.container {
+    width: 350px;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.flight-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.remove-btn:hover {
+    background: red;
+    color: white;
+    transform: scale(1.1);
+}
+
+.add-flight-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.add-flight-btn:hover {
+    background: linear-gradient(45deg, #0056b3, #004494);
+    transform: scale(1.05);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+
+.suggestions li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.suggestions li:hover {
+    background-color: #f0f0f0;
+}
+/* Стили для списка подсказок */
+.suggestions {
+    list-style: none;
+    padding: 0;
+    margin-top: 5px;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative !important; /* Изменяем позицию, если список "лезет" */
+     overflow: hidden !important; /* Скрываем ненужное */
+    width: 100%;
+    z-index: 1000;
+    max-height: 200px; /* Ограничиваем высоту списка */
+    overflow-y: auto;  /* Добавляем прокрутку, если подсказок много */
+    border: 1px solid #ccc;
+}
+
+/* Стили для элементов списка */
+.suggestions li {
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+    background: white;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* При наведении текст становится белым, а фон синим */
+.suggestions li:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+
+/* Стиль для кнопки "Далее" */
+.next-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.next-btn:hover {
+    background: linear-gradient(45deg, #0056b3, #004494);
+    transform: scale(1.05);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+
+
