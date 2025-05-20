@@ -7,6 +7,7 @@ build:
 run-dev:
 	docker run -p 8080:5000 \
 		-v $(PWD)/app:/travel-app/app \
+		-v $(PWD)/requirements.txt:/travel-app/requirements.txt \
 		-e FLASK_DEBUG=1 -e FLASK_ENV=development -e SASS_WATCH=true \
 		--name app-dev -d travel-web-app:v0.1
 
