@@ -1,12 +1,9 @@
 from flask import render_template, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-import json
 import re
-from datetime import datetime
-from app import app
+from . import db
+from .models import Users
 
-# Простейшая БД в памяти — словарь пользователей
-users_db = {}
 
 def validate_password(password):
     if len(password) < 6:
@@ -16,12 +13,12 @@ def validate_password(password):
     if not re.search(r'\d', password):
         return 'Пароль должен содержать минимум одну цифру'
     if not re.search(r'[$!@#%^&*()_+\-=\[\]{};\'\\:"|,.<>\/?]', password):
-        return 'Пароль должен содержать минимум один специальный символ (например, $, !, @)'
+        return 'Пароль должен содержать минимум один специальный символ'
     return ''
+
 
 def validate_registration(data):
     errors = {}
-
     name = data.get('name', '').strip()
     email = data.get('email', '').strip()
     password = data.get('password', '').strip()
@@ -45,74 +42,72 @@ def validate_registration(data):
 
     return errors
 
-@app.route('/')
-@app.route('/index')
-def index():
-  return render_template('main.html')
 
-@app.route('/login')
-def login():
-  return render_template('login.html')
+def register_routes(app):
+    @app.route('/')
+    @app.route('/index')
+    def index():
+        return render_template('main.html')
 
-@app.route('/signup', methods=['POST'])
-def signup():
-    data = request.get_json(silent=True) or {}
+    @app.route('/login')
+    def login():
+        return render_template('login.html')
 
-    errors = validate_registration(data)
-    if errors:
-        return jsonify({'errors': errors}), 400
+    @app.route('/signup', methods=['POST'])
+    def signup():
+        data = request.get_json(silent=True) or {}
+        errors = validate_registration(data)
 
-    email = data['email']
+        if errors:
+            return jsonify({'errors': errors}), 400
 
-    if email in users_db:
-        return jsonify({'errors': {'email': 'Пользователь с таким Email уже существует'}}), 400
+        if Users.query.filter_by(email=data['email']).first():
+            return jsonify({'errors': {'email': 'Пользователь с таким Email уже существует'}}), 400
 
-    pw_hash = generate_password_hash(data['password'])
-    registered_at = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
+        try:
+            new_user = Users(
+                username=data['name'],
+                email=data['email'],
+                password=generate_password_hash(data['password'])
+            )
+            db.session.add(new_user)
+            db.session.commit()
 
-    user = {
-        'name': data['name'],
-        'email': email,
-        'password_hash': pw_hash,
-        'registered_at': registered_at
-    }
+            return jsonify({
+                'message': 'Регистрация успешна',
+                'user': {'name': new_user.username, 'email': new_user.email}
+            }), 201
 
-    users_db[email] = user
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
 
-    print('Новый пользователь зарегистрирован:', json.dumps(user, ensure_ascii=False), flush=True)
+    @app.route('/signin', methods=['POST'])
+    def signin():
+        data = request.get_json(silent=True) or {}
+        email = data.get('email', '').strip()
+        password = data.get('password', '').strip()
 
-    return jsonify({'message': 'Регистрация успешна', 'user': {'name': user['name'], 'email': user['email']}}), 201
+        user = Users.query.filter_by(email=email).first()
 
-@app.route('/signin', methods=['POST'])
-def signin():
-    data = request.get_json(silent=True) or {}
+        if not user or not check_password_hash(user.password, password):
+            return jsonify({'error': 'Неверные учетные данные'}), 401
 
-    email = data.get('email', '').strip()
-    password = data.get('password', '').strip()
+        return jsonify({'message': f'Добро пожаловать, {user.username}!'}), 200
 
-    if not email or '@' not in email:
-        return jsonify({'error': 'Некорректный Email'}), 400
-    if not password:
-        return jsonify({'error': 'Пароль обязателен'}), 400
+    @app.route('/debug/users')
+    def debug_users():
+        users = Users.query.all()
+        return jsonify([{
+            'id': u.id,
+            'username': u.username,
+            'email': u.email
+        } for u in users])
 
-    user = users_db.get(email)
-    if not user:
-        return jsonify({'error': 'Пользователь не найден'}), 404
+    @app.route('/entry')
+    def city_form():
+        return render_template('city_form.html')
 
-    if not check_password_hash(user['password_hash'], password):
-        return jsonify({'error': 'Неверный пароль'}), 401
-
-    return jsonify({'message': f'Добро пожаловать, {user["name"]}!'}), 200
-
-
-@app.route('/debug/users')
-def debug_users():
-    return jsonify(users_db)
-
-@app.route('/entry')
-def city_form():
-  return render_template('city_form.html')
-
-@app.route('/routes')
-def routes():
-  return render_template('fly_routes.html')
+    @app.route('/routes')
+    def routes():
+        return render_template('fly_routes.html')
