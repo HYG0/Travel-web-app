@@ -7,3 +7,4 @@ app/static/css/main.css
 *.map
 *.pyc
 *min.js
+.idea/
