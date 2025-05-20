@@ -19,4 +19,7 @@ COPY . .
 # Сборка CSS
 RUN npm run build
 
+# Точка входа в приложение
+ENV FLASK_APP=run.py
+
 CMD [ "npm", "run", "dev" ]
