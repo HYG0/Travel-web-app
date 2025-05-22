@@ -1,10 +1,9 @@
 from flask import render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
-import requests
 from . import db
 from .models import Users
-
+from . import api
 
 def validate_password(password):
     if len(password) < 6:
@@ -133,35 +132,4 @@ def register_routes(app):
         
         return render_template('profile.html', user=user)
 
-    @app.route('/search_cities')
-    def search_cities():
-        query = request.args.get('q')
-        if not query:
-            return jsonify([])
-
-        response = requests.get(
-            'https://places.aviasales.ru/v2/places.json',
-            params={
-                'term': query,
-                'locale': 'ru',
-                'types[]': 'city'
-            }
-        )
-
-        if response.status_code != 200:
-            return jsonify([])
-        if response.status_code == 429:
-            return "Too mucn requests to API"
-
-        data = response.json()
-
-        results = []
-        for item in data:
-            if query.lower() in item.get('name', '').lower():
-                results.append({
-                    "name": item.get("name", ""),
-                    "code": item.get("code", ""),
-                    "country_name": item.get("country_name", "")
-                })
-
-        return jsonify(results)
+    api.basic_search_flights(app)
