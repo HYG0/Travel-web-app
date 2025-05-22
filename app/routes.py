@@ -108,7 +108,7 @@ def register_routes(app):
     @app.route('/entry')
     def city_form():
         return render_template('city_form.html')
-    
+
     @app.route('/routes')
     def routes():
         return render_template('fly_routes.html')
@@ -120,7 +120,7 @@ def register_routes(app):
     @app.route('/profile')
     def profile():
         return render_template('profile.html')
-    
+
     @app.route('/search_cities')
     def search_cities():
         query = request.args.get('q')
