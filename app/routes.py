@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 import requests
@@ -74,6 +74,8 @@ def register_routes(app):
             db.session.add(new_user)
             db.session.commit()
 
+            session['user_id'] = new_user.id
+
             return jsonify({
                 'message': 'Регистрация успешна',
                 'user': {'name': new_user.username, 'email': new_user.email}
@@ -93,6 +95,8 @@ def register_routes(app):
 
         if not user or not check_password_hash(user.password, password):
             return jsonify({'error': 'Неверные учетные данные'}), 401
+        
+        session['user_id'] = user.id
 
         return jsonify({'message': f'Добро пожаловать, {user.username}!'}), 200
 
@@ -119,7 +123,15 @@ def register_routes(app):
     
     @app.route('/profile')
     def profile():
-        return render_template('profile.html')
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect(url_for('login'))
+        
+        user = Users.query.get(user_id)
+        if not user:
+            return redirect(url_for('login'))
+        
+        return render_template('profile.html', user=user)
 
     @app.route('/search_cities')
     def search_cities():
