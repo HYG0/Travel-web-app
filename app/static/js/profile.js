@@ -1,10 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Элементы DOM
     const profileTitle = document.getElementById("profile-title");
-    const nicknameModal = document.getElementById("nickname-modal");
-    const nicknameInput = document.getElementById("nickname-input");
-    const saveNicknameBtn = document.getElementById("save-nickname");
-    const nicknameError = document.getElementById("nickname-error");
     const avatarLabel = document.getElementById("avatar-label");
     const avatarUpload = document.getElementById("avatar-upload");
     const addFlightBtn = document.getElementById("add-flight-btn");
@@ -14,25 +10,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const changeAvatarBtn = document.getElementById("change-avatar");
     const fullAvatarImg = document.getElementById("full-avatar");
     const routesContainer = document.getElementById("routes-container");
+    const homeBtn = document.getElementById("home-btn");
 
     // Данные пользователя
-    const takenNicknames = ["путешественник", "турист", "explorer"];
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
 
     // Инициализация профиля
     function initProfile() {
-        if (userData.nickname) {
-            profileTitle.textContent = userData.nickname;
-        }
-
-        if (userData.avatar) {
-            avatarLabel.textContent = "";
-            avatarLabel.style.backgroundImage = `url(${userData.avatar})`;
-        }
-
-        renderSelectedFlights();
+    profileTitle.textContent = "Мой профиль"; // Фиксированный текст
+    
+    if (userData.avatar) {
+        avatarLabel.textContent = "";
+        avatarLabel.style.backgroundImage = `url(${userData.avatar})`;
     }
 
+    renderSelectedFlights();
+}
     // Отображение выбранных рейсов
     function renderSelectedFlights() {
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
@@ -307,36 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Обработчики событий
-    profileTitle.addEventListener("click", () => {
-        nicknameInput.value = userData.nickname || "";
-        nicknameError.textContent = "";
-        nicknameModal.style.display = "flex";
-    });
-
-    saveNicknameBtn.addEventListener("click", () => {
-        const nickname = nicknameInput.value.trim();
-
-        if (!nickname) {
-            nicknameError.textContent = "Введите никнейм";
-            return;
-        }
-
-        if (takenNicknames.includes(nickname.toLowerCase())) {
-            nicknameError.textContent = "Этот никнейм уже занят";
-            return;
-        }
-
-        if (nickname.length < 3) {
-            nicknameError.textContent = "Минимум 3 символа";
-            return;
-        }
-
-        userData.nickname = nickname;
-        localStorage.setItem("userData", JSON.stringify(userData));
-
-        profileTitle.textContent = nickname;
-        nicknameModal.style.display = "none";
-    });
 
     avatarLabel.addEventListener("click", () => {
         avatarOptionsModal.style.display = "flex";
@@ -380,11 +343,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     window.addEventListener("click", (e) => {
-        if (e.target === nicknameModal) nicknameModal.style.display = "none";
         if (e.target === avatarOptionsModal) avatarOptionsModal.style.display = "none";
         if (e.target === avatarViewModal) avatarViewModal.style.display = "none";
     });
-
+    homeBtn.addEventListener("click", () => {
+    window.location.href = "/index"; // Или "/index.html" в зависимости от вашей структуры
+});
     // Инициализация при загрузке
     initProfile();
 });
