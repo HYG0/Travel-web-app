@@ -102,7 +102,7 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
     display: none !important;
 }
 .content-shifted {
-    margin-top: 140px !important; /* Сдвиг при открытом меню */
+    margin-top: 3vh !important; /* Сдвиг при открытом меню */
     transition: margin-top 0.3s ease;
 }
 
@@ -189,12 +189,11 @@ footer {
     display: flex;
     align-items: center;
     margin-left: auto; /* Сдвигает вправо */
-    padding-right: 15px;
 }
 
 .profile-circle {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     background-color: #007bff;
     color: white;
@@ -207,7 +206,7 @@ footer {
     overflow: hidden;
     background-size: cover;
     background-position: center;
-    border: 2px solid white;
+    border: 1px solid white;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
