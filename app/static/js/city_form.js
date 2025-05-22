@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     updateDateLimits();
+    restoreSavedFlights();
     document.querySelectorAll('.city-input').forEach(input => {
         input.addEventListener('input', () => fetchCitySuggestions(input));
     });
@@ -148,4 +149,35 @@ function goNext() {
 
     localStorage.setItem("flights", JSON.stringify(flights));
     window.location.href = "/routes";
+}
+
+function restoreSavedFlights() {
+    const saved = localStorage.getItem("flights");
+    if (!saved) return;
+
+    const flights = JSON.parse(saved);
+    const container = document.getElementById('flights-container');
+    container.innerHTML = ''; // Очищаем старую форму
+
+    flights.forEach(({ from, to, date }) => {
+        const card = document.createElement('div');
+        card.classList.add('flight-card');
+        card.innerHTML = `
+            <button class="remove-btn" onclick="removeFlight(this)">✖</button>
+            <div class="mb-2">
+                <input type="text" class="form-control city-input" placeholder="Откуда" value="${from}" oninput="fetchCitySuggestions(this)">
+                <ul class="suggestions"></ul>
+            </div>
+            <div class="mb-2">
+                <input type="text" class="form-control city-input" placeholder="Куда" value="${to}" oninput="fetchCitySuggestions(this)">
+                <ul class="suggestions"></ul>
+            </div>
+            <div class="mb-2">
+                <input type="date" class="form-control date-input" value="${date}" min="" max="2100-12-31">
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    updateDateLimits(); // Снова активируем ограничения по датам
 }

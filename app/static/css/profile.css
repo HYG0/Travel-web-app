@@ -1,0 +1,541 @@
+:root {
+    --primary: #007bff;
+    --secondary: #6c757d;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --border: #dee2e6;
+}
+
+body {
+    margin: 0;
+    padding: 12px;
+    font-family: 'Roboto', sans-serif;
+    background-color: #007bff;
+    color: #212529;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.profile-container {
+    width: 366px;
+    max-height: 820px;
+    margin: 10px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+}
+
+.header {
+    margin-bottom: 30px;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.editable {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.editable:hover {
+    color: var(--primary);
+}
+
+.avatar-container {
+    position: relative;
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+}
+
+.content h2 {
+    color: var(--dark);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.routes-info {
+    min-height: 200px;
+    margin-bottom: 30px;
+    background: #f8f9fa;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.flights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.flight-card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border);
+}
+
+.flight-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.flight-number {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.flight-date {
+    color: var(--secondary);
+    font-size: 0.9rem;
+}
+
+.flight-route {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.city {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.arrow {
+    color: var(--secondary);
+    font-weight: bold;
+}
+
+.flight-time {
+    text-align: center;
+    font-weight: 500;
+    color: var(--dark);
+}
+
+.empty-message {
+    text-align: center;
+    color: var(--secondary);
+    margin: 20px 0;
+    font-size: 1rem;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.action-buttons button {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.download-btn {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.add-flight-btn {
+    background-color: var(--primary);
+    color: white;
+}
+
+.action-buttons button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease;
+}
+
+.modal-content h3 {
+    margin: 0 0 20px;
+    font-size: 1.3rem;
+    color: var(--dark);
+    text-align: center;
+}
+
+#view-avatar, #change-avatar {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+#view-avatar {
+    background-color: var(--primary);
+    color: white;
+}
+
+#view-avatar:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+#change-avatar {
+    background-color: #e3f2fd;
+    color: var(--primary);
+}
+
+#change-avatar:hover {
+    background-color: #bbdefb;
+    transform: translateY(-2px);
+}
+
+.modal#nickname-modal .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease;
+}
+
+.modal#nickname-modal h3 {
+    margin: 0 0 20px;
+    font-size: 1.3rem;
+    color: var(--dark);
+    text-align: center;
+}
+
+.modal#nickname-modal input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: 'Roboto', sans-serif;
+    transition: border-color 0.2s ease;
+}
+
+.modal#nickname-modal input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.modal#nickname-modal .error-message {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin: 5px 0;
+    min-height: 20px;
+    text-align: center;
+}
+
+.modal#nickname-modal button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0 0;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary);
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal#nickname-modal button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.ticket-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Уменьшенный зазор */
+    opacity: 1 !important;
+}
+
+.pdf-header {
+    background: white;
+    border-radius: 8px;
+    padding: 5px; /* Уменьшенные отступы */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    opacity: 1 !important;
+}
+
+.pdf-header .logo {
+    font-size: 1.2rem; /* Уменьшенный шрифт */
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 3px; /* Уменьшенный отступ */
+    line-height: 1.2; /* Уменьшенный межстрочный интервал */
+}
+
+.pdf-header h1 {
+    font-size: 1.4rem; /* Уменьшенный шрифт */
+    color: #000000;
+    margin: 0 0 3px; /* Уменьшенный отступ */
+    line-height: 1.2;
+}
+
+.pdf-header .issue-date {
+    font-size: 0.7rem; /* Уменьшенный шрифт */
+    color: #000000;
+    line-height: 1.2;
+}
+
+.routes-section {
+    background: white;
+    border-radius: 8px;
+    padding: 5px; /* Уменьшенные отступы */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    opacity: 1 !important;
+}
+
+.routes-section h2 {
+    color: #007bff;
+    font-size: 1.2rem; /* Уменьшенный шрифт */
+    margin: 0 0 5px; /* Уменьшенный отступ */
+    text-align: center;
+    line-height: 1.2;
+}
+
+.route-header {
+    margin-bottom: 3px; /* Уменьшенный отступ */
+}
+
+.route-header h3 {
+    color: #000000;
+    font-size: 0.9rem; /* Уменьшенный шрифт */
+    margin: 0 0 2px; /* Уменьшенный отступ */
+    line-height: 1.2;
+}
+
+.route-header .route-chain {
+    text-align: center;
+    font-size: 0.8rem; /* Уменьшенный шрифт */
+    font-weight: 600;
+    color: #000000;
+    line-height: 1.2;
+}
+
+.flights-section {
+    background: white;
+    border-radius: 8px;
+    padding: 5px; /* Уменьшенные отступы */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    opacity: 1 !important;
+}
+
+.flights-section h2 {
+    color: #007bff;
+    font-size: 1.2rem; /* Уменьшенный шрифт */
+    margin: 0 0 5px; /* Уменьшенный отступ */
+    text-align: center;
+    line-height: 1.2;
+}
+
+.ticket {
+    background: white;
+    border-left: 4px solid #007bff; /* Уменьшенная ширина полосы */
+    border-radius: 8px;
+    padding: 4px; /* Уменьшенные отступы */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3px; /* Уменьшенный отступ */
+    opacity: 1 !important;
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px; /* Уменьшенный отступ */
+}
+
+.ticket-number {
+    font-weight: 600;
+    color: #007bff;
+    font-size: 0.5rem; /* Уменьшенный шрифт */
+    line-height: 1.2;
+}
+
+.ticket-date {
+    color: #000000;
+    font-size: 0.5rem; /* Уменьшенный шрифт */
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.ticket-airline {
+    font-size: 0.5rem; /* Уменьшенный шрифт */
+    color: #000000;
+    margin-bottom: 2px; /* Уменьшенный отступ */
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.ticket-route {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px; /* Уменьшенный зазор */
+    margin-bottom: 2px; /* Уменьшенный отступ */
+}
+
+.ticket-city {
+    font-weight: 600;
+    font-size: 0.5rem; /* Уменьшенный шрифт */
+    color: #000000;
+    line-height: 1.2;
+}
+
+.ticket-arrow {
+    color: #000000;
+    font-weight: bold;
+    font-size: 0.5rem; /* Уменьшенный шрифт */
+    line-height: 1.2;
+}
+
+.ticket-time {
+    text-align: center;
+    font-weight: 500;
+    color: #000000;
+    margin-bottom: 2px; /* Уменьшенный отступ */
+    font-size: 0.5rem; /* Уменьшенный шрифт */
+    line-height: 1.2;
+}
+
+.ticket-duration {
+    text-align: center;
+    font-size: 0.5rem; /* Уменьшенный шрифт */
+    color: #000000;
+    margin-bottom: 2px; /* Уменьшенный отступ */
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.ticket-barcode {
+    text-align: center;
+    font-size: 0.5rem; /* Уменьшенный шрифт */
+    color: #000000;
+    border: 1px dashed #007bff;
+    padding: 2px; /* Уменьшенные отступы */
+    border-radius: 4px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.pdf-footer {
+    background: white;
+    border-radius: 8px;
+    padding: 5px; /* Уменьшенные отступы */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    opacity: 1 !important;
+}
+
+.pdf-footer .service-info h3 {
+    color: #007bff;
+    font-size: 0.9rem; /* Уменьшенный шрифт */
+    margin: 0 0 3px; /* Уменьшенный отступ */
+    line-height: 1.2;
+}
+
+.pdf-footer .service-info p {
+    color: #000000;
+    font-size: 0.7rem; /* Уменьшенный шрифт */
+    margin: 0 0 5px; /* Уменьшенный отступ */
+    line-height: 1.2;
+}
+
+.pdf-footer .wishes p {
+    color: #007bff;
+    font-size: 0.8rem; /* Уменьшенный шрифт */
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.2;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 400px) {
+    .profile-container {
+        padding: 10px;
+    }
+    .flight-card {
+        padding: 10px;
+    }
+    .city {
+        font-size: 1rem;
+    }
+    .action-buttons button {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+}

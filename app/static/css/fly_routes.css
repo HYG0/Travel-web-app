@@ -1,37 +1,202 @@
 body {
     margin: 0;
-    padding: 0;
-    font-family: sans-serif;
+    padding: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: #007bff;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
 }
 
 .flight-summary-container {
-    width: 360px;
-    max-height: 80vh;
+    width: 366px;
+    max-height: 820px;
     background: white;
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     overflow-y: auto;
+    margin: 10px 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background: white;
+    color: #007bff;
+    border: 2px solid white;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.back-button:hover {
+    background: #0062cc;
+    color: white;
+}
+
+.profile-link {
+    text-decoration: none;
+}
+
+.profile-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-size: cover;
+    background-position: center;
+}
+
+.profile-circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .flight-block {
-    padding: 10px 0;
+    padding: 16px 0;
+    margin-bottom: 16px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.flight-route {
-    font-size: 20px;
+.route-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0 12px;
+}
+
+.city {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2d3748;
+    width: 45%;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.arrow {
+    color: #4a5568;
+    font-size: 18px;
     font-weight: bold;
-    color: black;
 }
 
 .flight-date {
-    font-size: 16px;
-    color: #555;
+    text-align: center;
+    color: #4a5568;
+    font-size: 15px;
+    margin-bottom: 16px;
 }
 
-.divider {
+.time-options {
+    position: relative;
+    padding: 0 12px;
+}
+
+.time-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.time-slot {
+    padding: 10px 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+}
+
+.time-slot:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.2);
+}
+
+.time-slot.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.time-slot.centered {
+    grid-column: 1 / -1;
+    width: 80%;
+    margin: 0 auto;
+    animation: popIn 0.3s ease;
+}
+
+.time-slot.hidden {
+    display: none;
+}
+
+.time {
+    font-size: 14px;
+    font-weight: 500;
+    display: block;
+}
+
+.flight-num {
+    font-size: 12px;
+    opacity: 0.9;
+    display: block;
+}
+
+.cancel-btn {
+    width: 80%;
+    margin: 12px auto 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    text-align: center;
+    color: #007bff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cancel-btn:hover {
+    background: #e2e8f0;
+    border-color: #007bff;
+}
+
+hr {
+    border: none;
     height: 1px;
-    background-color: #ccc;
-    margin: 10px 0;
+    background: #e2e8f0;
+    margin: 16px 12px;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }

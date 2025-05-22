@@ -18,3 +18,8 @@ def city_form():
 @app.route('/routes')
 def routes():
   return render_template('fly_routes.html')
+
+
+@app.route('/profile')
+def profile():
+  return render_template('profile.html')
