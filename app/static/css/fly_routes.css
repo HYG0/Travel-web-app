@@ -21,28 +21,9 @@ body {
 
 .header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     margin-bottom: 16px;
-}
-
-.back-button {
-    display: inline-block;
-    padding: 8px 16px;
-    background: white;
-    color: #007bff;
-    border: 2px solid white;
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.2s;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.back-button:hover {
-    background: #0062cc;
-    color: white;
 }
 
 .profile-link {
@@ -168,6 +149,13 @@ body {
     display: block;
 }
 
+.price {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.9;
+    display: block;
+}
+
 .cancel-btn {
     width: 80%;
     margin: 12px auto 0;
@@ -196,7 +184,396 @@ hr {
     margin: 16px 12px;
 }
 
+.add-flight-button {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.add-flight-link {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #007bff;
+    color: white;
+    border-radius: 24px;
+    border: 2px solid #0056b3;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.add-flight-link:hover {
+    background: #0056b3;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
+    border-color: #003087;
+}
+
+.save-route-button {
+    text-align: center;
+    margin-top: 16px;
+}
+
+.save-route-link {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #007bff;
+    color: white;
+    border-radius: 24px;
+    border: 2px solid #0056b3; /* Добавлена обводка, как у .add-flight-link */
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    cursor: pointer;
+}
+
+.save-route-link:hover {
+    background: #0056b3;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
+    border-color: #003087; /* Цвет обводки при наведении совпадает с .add-flight-link */
+}
+
 @keyframes popIn {
     0% { transform: scale(0.95); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+/* Стили для уведомления, адаптированные с login.css */
+.custom-alert {
+    position: fixed;
+    top: -100px; /* Изначально скрыто за пределами экрана */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff4444;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    font-weight: bold;
+    transition: top 0.5s ease-in-out, opacity 0.5s;
+    opacity: 0;
+    z-index: 1000;
+}
+
+.custom-alert.show {
+    top: 20px; /* Опускаем вниз */
+    opacity: 1;
+}
+
+/* Стили для уведомления об ошибке (красный цвет) */
+.custom-alert.error {
+    background-color: #ff4444; /* Красный цвет для ошибки */
+}
+
+body {
+    margin: 0;
+    padding: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #007bff;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.flight-summary-container {
+    width: 366px;
+    max-height: 820px;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+    margin: 10px 0;
+}
+
+.header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.profile-link {
+    text-decoration: none;
+}
+
+.profile-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-size: cover;
+    background-position: center;
+}
+
+.profile-circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.flight-block {
+    padding: 16px 0;
+    margin-bottom: 16px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.flight-route {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0 12px;
+}
+
+.flight-date {
+    text-align: center;
+    color: #4a5568;
+    font-size: 15px;
+    margin-bottom: 16px;
+}
+
+.route-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0 12px;
+}
+
+.city {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2d3748;
+    width: 45%;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.arrow {
+    color: #4a5568;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.time-options {
+    position: relative;
+    padding: 0 12px;
+}
+
+.time-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.time-slot {
+    padding: 10px 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+}
+
+.time-slot:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.2);
+}
+
+.time-slot.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.time-slot.centered {
+    grid-column: 1 / -1;
+    width: 80%;
+    margin: 0 auto;
+    animation: popIn 0.3s ease;
+}
+
+.time-slot.hidden {
+    display: none;
+}
+
+.time {
+    font-size: 14px;
+    font-weight: 500;
+    display: block;
+}
+
+.flight-num {
+    font-size: 12px;
+    opacity: 0.9;
+    display: block;
+}
+
+.price {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.9;
+    display: block;
+}
+
+.cancel-btn {
+    width: 80%;
+    margin: 12px auto 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    text-align: center;
+    color: #007bff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cancel-btn:hover {
+    background: #e2e8f0;
+    border-color: #007bff;
+}
+
+.divider {
+    border: none;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 16px 12px;
+}
+
+.add-flight-button {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.add-flight-link {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #007bff;
+    color: white;
+    border-radius: 24px;
+    border: 2px solid #0056b3;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.add-flight-link:hover {
+    background: #0056b3;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
+    border-color: #003087;
+}
+
+.save-route-button {
+    text-align: center;
+    margin-top: 16px;
+}
+
+.save-route-link {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #007bff;
+    color: white;
+    border-radius: 24px;
+    border: 2px solid #0056b3;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    cursor: pointer;
+}
+
+.save-route-link:hover {
+    background: #0056b3;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
+    border-color: #003087;
+}
+
+.select-hotel-btn {
+    display: block;
+    width: 80%;
+    margin: 12px auto 0;
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border: 2px solid #218838;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+}
+
+.select-hotel-btn:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.5);
+    border-color: #1e7e34;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Стили для уведомления */
+.custom-alert {
+    position: fixed;
+    top: -100px; /* Изначально скрыто за пределами экрана */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff4444;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    font-weight: bold;
+    transition: top 0.5s ease-in-out, opacity 0.5s;
+    opacity: 0;
+    z-index: 1000;
+}
+
+.custom-alert.show {
+    top: 20px; /* Опускаем вниз */
+    opacity: 1;
+}
+
+/* Стили для уведомления об ошибке (красный цвет) */
+.custom-alert.error {
+    background-color: #ff4444; /* Красный цвет для ошибки */
+}
+
+.hidden {
+    display: none;
 }

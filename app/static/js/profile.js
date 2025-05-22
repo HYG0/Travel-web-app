@@ -180,9 +180,9 @@ document.addEventListener("DOMContentLoaded", () => {
         tempContainer.style.position = "absolute";
         tempContainer.style.left = "-9999px";
         tempContainer.style.background = "#007bff";
-        tempContainer.style.padding = "5px"; // Уменьшенные отступы
-        tempContainer.style.width = "346px"; // Уменьшенная ширина для компактности
-        tempContainer.style.borderRadius = "8px"; // Уменьшенный радиус
+        tempContainer.style.padding = "10px";
+        tempContainer.style.width = "366px";
+        tempContainer.style.borderRadius = "12px";
 
         // Добавление логотипа и заголовка
         const header = document.createElement("div");
@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Генерация PDF
         const canvas = await html2canvas(tempContainer, {
-            scale: 3, // Увеличенный масштаб для повышения чёткости
+            scale: 2,
             useCORS: true,
             backgroundColor: "#007bff"
         });
@@ -275,21 +275,19 @@ document.addEventListener("DOMContentLoaded", () => {
             format: "a4"
         });
 
-        const imgWidth = 190; // Ширина изображения на странице A4
-        const pageHeight = pdf.internal.pageSize.height; // Высота страницы A4 (297 мм)
-        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Высота изображения
+        const imgWidth = 190;
+        const pageHeight = pdf.internal.pageSize.height;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
         let heightLeft = imgHeight;
         let position = 10;
 
-        // Добавляем изображение на страницу
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 10, position, imgWidth, imgHeight);
+        pdf.addImage(canvas.toDataURL("image/jpeg", 1.0), "JPEG", 10, position, imgWidth, imgHeight);
         heightLeft -= pageHeight - 20;
 
-        // Если контент не помещается, добавляем страницы
         while (heightLeft >= 0) {
             position = heightLeft - imgHeight + 10;
             pdf.addPage();
-            pdf.addImage(canvas.toDataURL("image/png"), "PNG", 10, position, imgWidth, imgHeight);
+            pdf.addImage(canvas.toDataURL("image/jpeg", 1.0), "JPEG", 10, position, imgWidth, imgHeight);
             heightLeft -= pageHeight - 20;
         }
 
