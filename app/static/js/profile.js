@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const changeAvatarBtn = document.getElementById("change-avatar");
     const fullAvatarImg = document.getElementById("full-avatar");
     const routesContainer = document.getElementById("routes-container");
+    const homeBtn = document.getElementById("home-btn");
 
     // Данные пользователя
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
@@ -345,7 +346,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target === avatarOptionsModal) avatarOptionsModal.style.display = "none";
         if (e.target === avatarViewModal) avatarViewModal.style.display = "none";
     });
-
+    homeBtn.addEventListener("click", () => {
+    window.location.href = "/index"; // Или "/index.html" в зависимости от вашей структуры
+});
     // Инициализация при загрузке
     initProfile();
 });
