@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="header">
+            <div class="profile-header">
+                <h1 id="profile-title" class="editable">Мой профиль</h1>
+                <div class="avatar-container">
+                    <label class="avatar" id="avatar-label">Ава</label>
+                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2>Мои билеты:</h2>
+            <div class="routes-info" id="routes-container">
+                <p style="color: var(--secondary); text-align: center; margin: 50px 0;">
+                    Здесь будут отображаться ваши сохранённые маршруты
+                </p>
+            </div>
+
+            <div class="action-buttons">
+                <button class="download-btn">
+                    <span class="icon">↓</span> Скачать в PDF
+                </button>
+                <button class="add-flight-btn" id="add-flight-btn">
+                    <span class="icon">+</span> Добавить перелёт
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="nickname-modal">
+        <div class="modal-content">
+            <h3>Введите ваш никнейм</h3>
+            <input type="text" id="nickname-input" placeholder="Придумайте никнейм" autocomplete="off">
+            <div id="nickname-error" class="error-message"></div>
+            <button id="save-nickname">Сохранить</button>
+        </div>
+    </div>
+
+    <div class="modal" id="avatar-options-modal">
+        <div class="modal-content">
+            <h3>Аватар</h3>
+            <button id="view-avatar">Посмотреть</button>
+            <button id="change-avatar">Изменить</button>
+        </div>
+    </div>
+
+    <div class="modal" id="avatar-view-modal">
+        <div class="modal-content" style="padding: 10px">
+            <img id="full-avatar" src="" alt="Аватар" style="max-width: 100%; border-radius: 12px;">
+        </div>
+    </div>
+
+    <script defer src="{{ url_for('static', filename='js/profile.js') }}"></script>
+</body>
+</html>
