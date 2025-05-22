@@ -117,6 +117,10 @@ def register_routes(app):
     def about():
         return render_template('about.html')
     
+    @app.route('/profile')
+    def profile():
+        return render_template('profile.html')
+    
     @app.route('/search_cities')
     def search_cities():
         query = request.args.get('q')
