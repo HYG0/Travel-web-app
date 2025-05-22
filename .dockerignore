@@ -7,3 +7,4 @@ app/__pycache__/
 .git
 .gitignore
 .dockerignore
+.idea/
