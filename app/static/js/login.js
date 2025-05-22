@@ -118,7 +118,7 @@ loginSubmitBtn.addEventListener('click', () => {
         if (status === 200) {
             showNotification('Успешный вход!');
             setTimeout(() => {
-                window.location.href = '/index';
+                window.location.href = '/profile';
             }, 1500);
         } else {
             // Показываем ошибку от сервера

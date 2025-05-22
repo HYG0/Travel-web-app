@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Create-Travel</title>
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 </head>
 <body>
 
@@ -19,12 +18,15 @@
                 <span></span>
             </button>
             <span class="navbar-brand mx-auto">Create & Travel</span>
+            <a href="/profile" class="profile-link ms-auto"> 
+                <div class="profile-circle" id="profile-circle"></div>
+            </a>
         </nav>
 
         <!-- Меню -->
         <div class="menu-items" id="menu">
+            <a href="/login">МОЙ ПРОФИЛЬ</a>
             <a href="/entry">МАРШРУТ</a>
-            <a href="#">КАРТА</a>
             <a href="/about">О ПРОЕКТЕ</a>
         </div>
     </header>
@@ -53,8 +55,12 @@
                     <img src="{{ url_for('static', filename='images/third.jpg') }}" class="d-block w-100" alt="3">
                 </div>
             </div>
+            
         </div>
     </div>
+
+    <!-- Форма создания плана -->
+    
 
     <!-- Раздел с блоками-статьями -->
     <section class="container my-5">
@@ -99,9 +105,9 @@
     </footer>
 
     <!-- Подключаем JS в конце body -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-     // Меню и элементы
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Меню и элементы
     const menu = document.getElementById("menu");
     const menuToggle = document.getElementById("menu-toggle");
     const mainContent = document.querySelector('.container.col.text-cyan.text-center');
@@ -138,9 +144,17 @@
         interval: 3000,
         wrap: true
     });
-    
 
-    
-    </script>
+// Загрузка аватара в кружок профиля
+// Загрузка аватара в профиль
+const userData = JSON.parse(localStorage.getItem("userData")) || {};
+const profileCircle = document.getElementById("profile-circle");
+if (userData.avatar) {
+    profileCircle.style.backgroundImage = `url(${userData.avatar})`;
+    profileCircle.textContent = "";
+} else {
+    profileCircle.textContent = "Профиль";
+}
+</script>
 </body>
 </html>
