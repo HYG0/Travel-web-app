@@ -1,10 +1,9 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
-import requests
 from . import db
 from .models import Users
-
+from . import api
 
 def validate_password(password):
     if len(password) < 6:
@@ -74,6 +73,8 @@ def register_routes(app):
             db.session.add(new_user)
             db.session.commit()
 
+            session['user_id'] = new_user.id
+
             return jsonify({
                 'message': 'Регистрация успешна',
                 'user': {'name': new_user.username, 'email': new_user.email}
@@ -93,6 +94,8 @@ def register_routes(app):
 
         if not user or not check_password_hash(user.password, password):
             return jsonify({'error': 'Неверные учетные данные'}), 401
+        
+        session['user_id'] = user.id
 
         return jsonify({'message': f'Добро пожаловать, {user.username}!'}), 200
 
@@ -119,37 +122,14 @@ def register_routes(app):
     
     @app.route('/profile')
     def profile():
-        return render_template('profile.html')
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect(url_for('login'))
+        
+        user = Users.query.get(user_id)
+        if not user:
+            return redirect(url_for('login'))
+        
+        return render_template('profile.html', user=user)
 
-    @app.route('/search_cities')
-    def search_cities():
-        query = request.args.get('q')
-        if not query:
-            return jsonify([])
-
-        response = requests.get(
-            'https://places.aviasales.ru/v2/places.json',
-            params={
-                'term': query,
-                'locale': 'ru',
-                'types[]': 'city'
-            }
-        )
-
-        if response.status_code != 200:
-            return jsonify([])
-        if response.status_code == 429:
-            return "Too mucn requests to API"
-
-        data = response.json()
-
-        results = []
-        for item in data:
-            if query.lower() in item.get('name', '').lower():
-                results.append({
-                    "name": item.get("name", ""),
-                    "code": item.get("code", ""),
-                    "country_name": item.get("country_name", "")
-                })
-
-        return jsonify(results)
+    api.basic_search_flights(app)
