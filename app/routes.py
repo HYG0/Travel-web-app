@@ -5,6 +5,7 @@ from . import db
 from .models import Users
 from . import api
 
+
 def validate_password(password):
     if len(password) < 6:
         return 'Пароль должен быть минимум 6 символов'
