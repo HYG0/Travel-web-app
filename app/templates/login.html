@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация и Вход</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}"> <!-- Подключаем CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <!-- Основной контейнер для формы -->
@@ -16,8 +17,11 @@
             <!-- Поля для ввода данных -->
             <div class="form-holder">
                 <input type="text" class="input" placeholder="Имя" />
-                <input type="email" class="input" placeholder="Email" />
-                <input type="password" class="input" placeholder="Пароль" />
+    <input type="email" class="input" placeholder="Email" />
+    <div class="password-container">
+        <input type="password" class="input password-input" placeholder="Пароль" />
+        <i class="fas fa-eye password-toggle"></i>
+    </div>
             </div>
             <!-- Кнопка регистрации -->
             <button class="submit-btn">Зарегистрироваться</button>
@@ -30,7 +34,10 @@
                 <!-- Поля для входа -->
                 <div class="form-holder">
                     <input type="email" class="input" placeholder="Email" />
-                    <input type="password" class="input" placeholder="Пароль" />
+    <div class="password-container">
+        <input type="password" class="input password-input" placeholder="Пароль" />
+        <i class="fas fa-eye password-toggle"></i>
+    </div>
                 </div>
                 <!-- Кнопка входа -->
                 <button class="submit-btn">Войти</button>

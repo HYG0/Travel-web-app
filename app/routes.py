@@ -133,4 +133,13 @@ def register_routes(app):
         
         return render_template('profile.html', user=user)
 
+    @app.route('/logout')
+    def logout():
+        # Очищаем сессию
+        session.clear()
+        # Можно также очистить куки, если нужно
+        # response = redirect(url_for('login'))
+        # response.delete_cookie('session')
+        return redirect(url_for('index'))  # Или на страницу входа
+
     api.basic_search_flights(app)

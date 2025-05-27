@@ -10,6 +10,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+    {% if not session.user_id %}
+    <script>
+        window.location.href = "/login";
+    </script>
+{% endif %}
     <div class="profile-container">
         <div class="header">
             <div class="profile-header">
@@ -37,8 +42,8 @@
                     <span class="icon">+</span> Добавить перелёт
                 </button>
                 <button class="home-btn" id="home-btn">
-             <span class="icon">⌂</span> На главную
-            </button>
+                    <span class="icon">⌂</span> На главную
+                </button>
             </div>
         </div>
     </div>
@@ -48,6 +53,7 @@
             <h3>Аватар</h3>
             <button id="view-avatar">Посмотреть</button>
             <button id="change-avatar">Изменить</button>
+            <button id="logout-btn" class="logout-btn">Выйти из профиля</button>
         </div>
     </div>
 

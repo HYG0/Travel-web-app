@@ -130,3 +130,30 @@ loginSubmitBtn.addEventListener('click', () => {
         showNotification('Ошибка сети. Попробуйте позже.', true);
     });
 });
+// Функция для переключения видимости пароля
+function setupPasswordToggle() {
+    const passwordToggles = document.querySelectorAll('.password-toggle');
+    
+    passwordToggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const passwordInput = this.previousElementSibling;
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            }
+        });
+    });
+}
+
+// Вызываем функцию после загрузки DOM
+document.addEventListener('DOMContentLoaded', function() {
+    setupPasswordToggle();
+    
+    // Остальной существующий код...
+});
