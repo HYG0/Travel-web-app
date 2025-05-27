@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fullAvatarImg = document.getElementById("full-avatar");
     const routesContainer = document.getElementById("routes-container");
     const homeBtn = document.getElementById("home-btn");
+    const logoutBtn = document.getElementById("logout-btn");
 
     // Данные пользователя
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
@@ -21,6 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userData.avatar) {
         avatarLabel.textContent = "";
         avatarLabel.style.backgroundImage = `url(${userData.avatar})`;
+    } else {
+        avatarLabel.textContent = "Ава";
+        avatarLabel.style.backgroundImage = "";
     }
 
     renderSelectedFlights();
@@ -309,7 +313,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         avatarOptionsModal.style.display = "none";
     });
-
+    logoutBtn.addEventListener("click", () => {
+    // Отправляем запрос на сервер для выхода
+    fetch('/logout', {
+        method: 'GET',
+        credentials: 'same-origin' // Важно для передачи сессии
+    })
+    .then(response => {
+        if (response.redirected) {
+            // Очищаем локальные данные
+            localStorage.clear();
+            // Перенаправляем на страницу входа
+            window.location.href = response.url;
+        }
+    })
+    .catch(error => console.error('Ошибка при выходе:', error));
+});
     changeAvatarBtn.addEventListener("click", () => {
         avatarUpload.click();
         avatarOptionsModal.style.display = "none";

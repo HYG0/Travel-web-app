@@ -342,3 +342,28 @@ html, body {
 .notification.error {
     background-color: #ff4444; /* Красный цвет для ошибки */
 }
+/* Стили для контейнера пароля */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Стили для иконки глазка */
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0.4);
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: rgba(0, 0, 0, 0.7);
+}
+
+/* Убираем стандартные отступы у поля ввода пароля */
+.password-input {
+    padding-right: 40px !important; /* Оставляем место для иконки */
+    width: 100% !important;
+}
