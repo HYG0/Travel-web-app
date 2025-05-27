@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Инициализация профиля
     function initProfile() {
-    profileTitle.textContent = "Мой профиль"; // Фиксированный текст
     
     if (userData.avatar) {
         avatarLabel.textContent = "";
