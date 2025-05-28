@@ -14,11 +14,11 @@
     <script>
         window.location.href = "/login";
     </script>
-{% endif %}
+    {% endif %}
     <div class="profile-container">
         <div class="header">
             <div class="profile-header">
-                <h1 id="profile-title"> {{ user.username }} </h1>
+                <h1 id="profile-title">{{ user.username }}</h1>
                 <div class="avatar-container">
                     <label class="avatar" id="avatar-label">Ава</label>
                     <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
@@ -60,6 +60,18 @@
     <div class="modal" id="avatar-view-modal">
         <div class="modal-content" style="padding: 10px">
             <img id="full-avatar" src="" alt="Аватар" style="max-width: 100%; border-radius: 12px;">
+        </div>
+    </div>
+
+    <!-- Новое модальное окно для подтверждения удаления -->
+    <div class="modal" id="confirm-delete-modal">
+        <div class="modal-content">
+            <h3>Подтверждение</h3>
+            <p>Вы хотите отменить данную поездку?</p>
+            <div class="modal-buttons">
+                <button id="confirm-yes" class="confirm-btn">Да</button>
+                <button id="confirm-no" class="confirm-btn">Нет</button>
+            </div>
         </div>
     </div>
 

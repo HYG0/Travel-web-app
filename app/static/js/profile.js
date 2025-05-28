@@ -12,23 +12,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const routesContainer = document.getElementById("routes-container");
     const homeBtn = document.getElementById("home-btn");
     const logoutBtn = document.getElementById("logout-btn");
+    const confirmDeleteModal = document.getElementById("confirm-delete-modal");
+    const confirmYesBtn = document.getElementById("confirm-yes");
+    const confirmNoBtn = document.getElementById("confirm-no");
+
+    // Переменная для хранения индекса рейса, который нужно удалить
+    let flightIndexToDelete = null;
 
     // Данные пользователя
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
 
     // Инициализация профиля
     function initProfile() {
-    
-    if (userData.avatar) {
-        avatarLabel.textContent = "";
-        avatarLabel.style.backgroundImage = `url(${userData.avatar})`;
-    } else {
-        avatarLabel.textContent = "Ава";
-        avatarLabel.style.backgroundImage = "";
+        if (userData.avatar) {
+            avatarLabel.textContent = "";
+            avatarLabel.style.backgroundImage = `url(${userData.avatar})`;
+        } else {
+            avatarLabel.textContent = "Ава";
+            avatarLabel.style.backgroundImage = "";
+        }
+
+        renderSelectedFlights();
     }
 
-    renderSelectedFlights();
-}
     // Отображение выбранных рейсов
     function renderSelectedFlights() {
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
@@ -45,9 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const selectedIndex = flightsData[flightId].selectedIndex;
             const timeData = flightsData[`times_${flightId}`] ? flightsData[`times_${flightId}`][selectedIndex] : null;
             if (timeData) {
-                return { ...flight, ...timeData };
+                return { ...flight, ...timeData, price: timeData.price || "Неизвестно" };
             }
-            return { ...flight, departure: "Не указано", arrival: "Не указано", number: "Неизвестно" };
+            return { ...flight, departure: "Не указано", arrival: "Не указано", number: "Неизвестно", price: "Неизвестно" };
         });
 
         console.log("Selected flights:", selectedFlights);
@@ -71,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="flight-header">
                     <span class="flight-number">${flight.number}</span>
                     <span class="flight-date">${formatDate(flight.date)}</span>
+                    <button class="remove-flight-btn" data-index="${index}">✖</button>
                 </div>
                 <div class="flight-route">
                     <span class="city">${flight.from}</span>
@@ -78,20 +85,50 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="city">${flight.to}</span>
                 </div>
                 <div class="flight-time">
-                    ${flight.departure} - ${flight.arrival}
+                    <span>${flight.departure} - ${flight.arrival}</span>
+                    <span class="flight-price">${flight.price}</span>
                 </div>
             `;
             flightsList.appendChild(flightCard);
         });
 
         routesContainer.appendChild(flightsList);
+
+        // Добавляем обработчики для кнопок удаления
+        document.querySelectorAll('.remove-flight-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const index = parseInt(e.target.getAttribute('data-index'));
+                flightIndexToDelete = index;
+                confirmDeleteModal.style.display = "flex";
+            });
+        });
+    }
+
+    // Удаление рейса
+    function removeFlight(index) {
+        const flights = JSON.parse(localStorage.getItem("flights")) || [];
+        const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
+
+        const flightToRemove = flights[index];
+        if (flightToRemove) {
+            const flightId = `${flightToRemove.from}-${flightToRemove.to}-${flightToRemove.date}`.replace(/\s+/g, '-');
+            delete flightsData[flightId];
+            delete flightsData[`times_${flightId}`];
+            flights.splice(index, 1);
+            localStorage.setItem("flights", JSON.stringify(flights));
+            localStorage.setItem("flightsData", JSON.stringify(flightsData));
+            renderSelectedFlights();
+        }
     }
 
     // Форматирование даты
     function formatDate(dateStr) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         const date = new Date(dateStr);
-        return `${date.getDate()} ${months[date.getMonth()]}`;
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
     }
 
     // Вычисление продолжительности полёта
@@ -122,7 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
         const flights = JSON.parse(localStorage.getItem("flights")) || [];
 
-        // Фильтрация выбранных рейсов
         const selectedFlights = flights
             .filter(flight => {
                 const flightId = `${flight.from}-${flight.to}-${flight.date}`.replace(/\s+/g, '-');
@@ -140,10 +176,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Сортировка по дате
         const sortedFlights = selectedFlights.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // Формирование всех возможных цепочек
         const chains = [];
         const usedFlights = new Set();
 
@@ -170,14 +204,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // Добавим одиночные рейсы, которые не вошли в цепочки
         sortedFlights.forEach((flight, index) => {
             if (!usedFlights.has(index)) {
                 chains.push([flight]);
             }
         });
 
-        // Создание временного контейнера для рендеринга
         const tempContainer = document.createElement("div");
         tempContainer.className = "ticket-container";
         tempContainer.style.position = "absolute";
@@ -187,7 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
         tempContainer.style.width = "366px";
         tempContainer.style.borderRadius = "12px";
 
-        // Добавление логотипа и заголовка
         const header = document.createElement("div");
         header.className = "pdf-header";
         header.innerHTML = `
@@ -197,7 +228,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         tempContainer.appendChild(header);
 
-        // Добавление цепочек маршрутов
         if (chains.length > 0) {
             const routesSection = document.createElement("div");
             routesSection.className = "routes-section";
@@ -218,7 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
             tempContainer.appendChild(routesSection);
         }
 
-        // Добавление всех рейсов
         const flightsSection = document.createElement("div");
         flightsSection.className = "flights-section";
         flightsSection.innerHTML = `<h2>Все рейсы</h2>`;
@@ -248,7 +277,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         tempContainer.appendChild(flightsSection);
 
-        // Добавление информации о сервисе и пожелания
         const footer = document.createElement("div");
         footer.className = "pdf-footer";
         footer.innerHTML = `
@@ -264,7 +292,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.body.appendChild(tempContainer);
 
-        // Генерация PDF
         const canvas = await html2canvas(tempContainer, {
             scale: 2,
             useCORS: true,
@@ -296,12 +323,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         pdf.save(`my_tickets_${new Date().toISOString().split("T")[0]}.pdf`);
 
-        // Удаление временного контейнера
         document.body.removeChild(tempContainer);
     });
 
     // Обработчики событий
-
     avatarLabel.addEventListener("click", () => {
         avatarOptionsModal.style.display = "flex";
     });
@@ -313,22 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         avatarOptionsModal.style.display = "none";
     });
-    logoutBtn.addEventListener("click", () => {
-    // Отправляем запрос на сервер для выхода
-    fetch('/logout', {
-        method: 'GET',
-        credentials: 'same-origin' // Важно для передачи сессии
-    })
-    .then(response => {
-        if (response.redirected) {
-            // Очищаем локальные данные
-            localStorage.clear();
-            // Перенаправляем на страницу входа
-            window.location.href = response.url;
-        }
-    })
-    .catch(error => console.error('Ошибка при выходе:', error));
-});
+
     changeAvatarBtn.addEventListener("click", () => {
         avatarUpload.click();
         avatarOptionsModal.style.display = "none";
@@ -358,13 +368,44 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "/entry";
     });
 
+    logoutBtn.addEventListener("click", () => {
+        fetch('/logout', {
+            method: 'GET',
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (response.redirected) {
+                localStorage.clear();
+                window.location.href = response.url;
+            }
+        })
+        .catch(error => console.error('Ошибка при выходе:', error));
+    });
+
+    homeBtn.addEventListener("click", () => {
+        window.location.href = "/index";
+    });
+
+    // Обработчики для модального окна подтверждения удаления
+    confirmYesBtn.addEventListener("click", () => {
+        if (flightIndexToDelete !== null) {
+            removeFlight(flightIndexToDelete);
+            flightIndexToDelete = null;
+        }
+        confirmDeleteModal.style.display = "none";
+    });
+
+    confirmNoBtn.addEventListener("click", () => {
+        flightIndexToDelete = null;
+        confirmDeleteModal.style.display = "none";
+    });
+
     window.addEventListener("click", (e) => {
         if (e.target === avatarOptionsModal) avatarOptionsModal.style.display = "none";
         if (e.target === avatarViewModal) avatarViewModal.style.display = "none";
+        if (e.target === confirmDeleteModal) confirmDeleteModal.style.display = "none";
     });
-    homeBtn.addEventListener("click", () => {
-    window.location.href = "/index"; // Или "/index.html" в зависимости от вашей структуры
-});
+
     // Инициализация при загрузке
     initProfile();
 });

@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const hotelModal = new bootstrap.Modal(document.getElementById("hotelModal"));
             hotelModal.show();
 
-            const selectHotelButtons = document.querySelectorAll(".select-hotel");
+            const selectHotelButtons = document.querySelectorAll(".select-hotel-option");
             selectHotelButtons.forEach(btn => {
                 btn.onclick = () => {
                     const hotelName = btn.parentElement.querySelector("h6").textContent;
@@ -103,9 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const airline = ['SU', 'S7', 'U6'][Math.floor(Math.random() * 3)];
         const baseNum = Math.floor(Math.random() * 900) + 100;
         return [
-            { departure: "08:00", arrival: "10:00", number: `${airline}${baseNum}A` },
-            { departure: "12:00", arrival: "14:00", number: `${airline}${baseNum}B` },
-            { departure: "16:00", arrival: "18:00", number: `${airline}${baseNum}C` }
+            { departure: "08:00", arrival: "10:00", number: `${airline}${baseNum}A`, price: "15000₽" },
+            { departure: "12:00", arrival: "14:00", number: `${airline}${baseNum}B`, price: "15000₽" },
+            { departure: "16:00", arrival: "18:00", number: `${airline}${baseNum}C`, price: "15000₽" }
         ];
     }
 
@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
             slot.innerHTML = `
                 <span class="time">${time.departure}-${time.arrival}</span>
                 <span class="flight-num">${time.number}</span>
-                <span class="price">15000₽</span>
+                <span class="price">${time.price}</span>
             `;
             slot.addEventListener("click", () => {
                 if (!slot.classList.contains("selected")) {
@@ -223,7 +223,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function formatDate(dateString) {
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         const date = new Date(dateString);
-        return `${date.getDate()} ${months[date.getMonth()]}`;
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
     }
 
     function showCustomAlert(message) {
@@ -258,7 +261,7 @@ function sendSingleRoute(card) {
 
     if (!fromCity || !toCity || !flightDate || !time || !flightNumber || !priceStr) {
         console.warn("Недостаточно данных для маршрута.");
-        return Promise.resolve(); // чтобы Promise.all не падал
+        return Promise.resolve();
     }
 
     const price = parseInt(priceStr.replace(/[^\d]/g, ''), 10);
