@@ -2,6 +2,7 @@ from flask import render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from . import db
+from .fly_routes import configure_routes
 from .models import Users
 from . import api
 
@@ -141,5 +142,7 @@ def register_routes(app):
         # response = redirect(url_for('login'))
         # response.delete_cookie('session')
         return redirect(url_for('index'))  # Или на страницу входа
+
+    configure_routes(app)
 
     api.basic_search_flights(app)

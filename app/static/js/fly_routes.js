@@ -53,7 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (allTimesSelected || flights.length === 0) {
-            window.location.href = "/profile";
+            const allCards = document.querySelectorAll(".flight-block");
+            const sendPromises = Array.from(allCards).map(card => sendSingleRoute(card));
+            Promise.all(sendPromises).then(() => {
+                window.location.href = "/profile";
+            });
         } else {
             showCustomAlert("Пожалуйста, выберите время для всех рейсов перед сохранением маршрута.");
         }
@@ -70,7 +74,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const hotelModal = new bootstrap.Modal(document.getElementById("hotelModal"));
             hotelModal.show();
 
-            // Обработчики для кнопок выбора отеля в модальном окне
             const selectHotelButtons = document.querySelectorAll(".select-hotel");
             selectHotelButtons.forEach(btn => {
                 btn.onclick = () => {
@@ -81,8 +84,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
-
-    // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 
     function initFlightNumbers() {
         const currentFlightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
@@ -241,6 +242,50 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             alertBox.classList.remove("show");
             setTimeout(() => alertBox.classList.add("hidden"), 300);
-        }, 2500); // Уведомление исчезает через 2.5 секунды
+        }, 2500);
     }
 });
+
+function sendSingleRoute(card) {
+    const fromCity = card.querySelector('.city.from-city')?.textContent.trim();
+    const toCity = card.querySelector('.city.to-city')?.textContent.trim();
+    const flightDate = card.querySelector('.flight-date')?.textContent.trim();
+    const time = card.querySelector('.time-slot.selected .time')?.textContent.trim();
+    const flightNumber = card.querySelector('.time-slot.selected .flight-num')?.textContent.trim();
+    const priceStr = card.querySelector('.time-slot.selected .price')?.textContent.trim();
+
+    console.log("DEBUG: ", { fromCity, toCity, flightDate, time, flightNumber, priceStr });
+
+    if (!fromCity || !toCity || !flightDate || !time || !flightNumber || !priceStr) {
+        console.warn("Недостаточно данных для маршрута.");
+        return Promise.resolve(); // чтобы Promise.all не падал
+    }
+
+    const price = parseInt(priceStr.replace(/[^\d]/g, ''), 10);
+    const [departureAt, returnAt] = time.split('-');
+
+    const payload = {
+        origin: fromCity,
+        destination: toCity,
+        departure_at: departureAt,
+        return_at: returnAt,
+        flight_number: flightNumber,
+        airline: flightNumber.substring(0, 2),
+        price
+    };
+
+    return fetch('/add_route', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    }).then(response => {
+        if (!response.ok) throw new Error("Ошибка при отправке");
+        return response.json();
+    }).then(data => {
+        console.log("Ответ сервера:", data);
+    }).catch(error => {
+        console.error("Ошибка:", error);
+    });
+}
