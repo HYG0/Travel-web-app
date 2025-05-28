@@ -40,23 +40,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
         const flights = JSON.parse(localStorage.getItem("flights")) || [];
         routesContainer.innerHTML = '';
-        console.log("Loaded flightsData:", flightsData);
-        console.log("Loaded flights:", flights);
+        console.log("Loaded flightsData in profile:", flightsData);
+        console.log("Loaded flights in profile:", flights);
 
-        const selectedFlights = flights.filter(flight => {
-            const flightId = `${flight.from}-${flight.to}-${flight.date}`.replace(/\s+/g, '-');
-            return flightsData[flightId]?.selectedIndex !== undefined;
-        }).map(flight => {
-            const flightId = `${flight.from}-${flight.to}-${flight.date}`.replace(/\s+/g, '-');
-            const selectedIndex = flightsData[flightId].selectedIndex;
-            const timeData = flightsData[`times_${flightId}`] ? flightsData[`times_${flightId}`][selectedIndex] : null;
-            if (timeData) {
-                return { ...flight, ...timeData, price: timeData.price || "Неизвестно" };
-            }
-            return { ...flight, departure: "Не указано", arrival: "Не указано", number: "Неизвестно", price: "Неизвестно" };
-        });
+        const selectedFlights = flights
+            .map((flight, index) => {
+                const flightId = `${flight.from}-${flight.to}-${flight.date}`;
+                const timesKey = `times_${flightId}`;
+                console.log(`Processing flight ${index}: flightId=${flightId}, timesKey=${timesKey}`);
+                if (flightsData[timesKey]?.selectedIndex !== undefined) {
+                    const selectedIndex = flightsData[timesKey].selectedIndex;
+                    const timeData = flightsData[timesKey]?.times?.[selectedIndex] || {};
+                    console.log(`Found selected flight: flightId=${flightId}, timeData=`, timeData);
+                    return {
+                        ...flight,
+                        ...timeData,
+                        price: timeData.price ? `${timeData.price}₽` : "Неизвестно",
+                        originalIndex: index
+                    };
+                }
+                return null;
+            })
+            .filter(flight => flight !== null);
 
-        console.log("Selected flights:", selectedFlights);
+        console.log("Selected flights in profile:", selectedFlights);
 
         if (selectedFlights.length === 0) {
             routesContainer.innerHTML = `
@@ -70,14 +77,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const flightsList = document.createElement('div');
         flightsList.className = 'flights-list';
 
-        selectedFlights.forEach((flight, index) => {
+        selectedFlights.forEach((flight, displayIndex) => {
             const flightCard = document.createElement('div');
             flightCard.className = 'flight-card';
             flightCard.innerHTML = `
                 <div class="flight-header">
-                    <span class="flight-number">${flight.number}</span>
+                    <span class="flight-number">${flight.number || "Неизвестно"}</span>
                     <span class="flight-date">${formatDate(flight.date)}</span>
-                    <button class="remove-flight-btn" data-index="${index}">✖</button>
+                    <button class="remove-flight-btn" data-index="${flight.originalIndex}">✖</button>
                 </div>
                 <div class="flight-route">
                     <span class="city">${flight.from}</span>
@@ -85,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="city">${flight.to}</span>
                 </div>
                 <div class="flight-time">
-                    <span>${flight.departure} - ${flight.arrival}</span>
+                    <span>${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"}</span>
                     <span class="flight-price">${flight.price}</span>
                 </div>
             `;
@@ -111,9 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const flightToRemove = flights[index];
         if (flightToRemove) {
-            const flightId = `${flightToRemove.from}-${flightToRemove.to}-${flightToRemove.date}`.replace(/\s+/g, '-');
-            delete flightsData[flightId];
-            delete flightsData[`times_${flightId}`];
+            const flightId = `${flightToRemove.from}-${flightToRemove.to}-${flightToRemove.date}`;
+            const timesKey = `times_${flightId}`;
+            delete flightsData[timesKey];
             flights.splice(index, 1);
             localStorage.setItem("flights", JSON.stringify(flights));
             localStorage.setItem("flightsData", JSON.stringify(flightsData));
@@ -160,16 +167,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const flights = JSON.parse(localStorage.getItem("flights")) || [];
 
         const selectedFlights = flights
-            .filter(flight => {
-                const flightId = `${flight.from}-${flight.to}-${flight.date}`.replace(/\s+/g, '-');
-                return flightsData[flightId]?.selectedIndex !== undefined;
-            })
             .map(flight => {
-                const flightId = `${flight.from}-${flight.to}-${flight.date}`.replace(/\s+/g, '-');
-                const selectedIndex = flightsData[flightId].selectedIndex;
-                const timeData = flightsData[`times_${flightId}`] ? flightsData[`times_${flightId}`][selectedIndex] : null;
-                return timeData ? { ...flight, ...timeData, flightId } : { ...flight, departure: "Не указано", arrival: "Не указано", number: "Неизвестно", flightId };
-            });
+                const flightId = `${flight.from}-${flight.to}-${flight.date}`;
+                const timesKey = `times_${flightId}`;
+                if (flightsData[timesKey]?.selectedIndex !== undefined) {
+                    const selectedIndex = flightsData[timesKey].selectedIndex;
+                    const timeData = flightsData[timesKey]?.times?.[selectedIndex] || {};
+                    return { ...flight, ...timeData, flightId };
+                }
+                return null;
+            })
+            .filter(flight => flight !== null);
 
         if (selectedFlights.length === 0) {
             alert("Нет рейсов для скачивания!");
@@ -255,11 +263,11 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedFlights.forEach(flight => {
             const ticket = document.createElement("div");
             ticket.className = "ticket";
-            const duration = calculateFlightDuration(flight.departure, flight.arrival);
-            const airline = getAirline(flight.number);
+            const duration = calculateFlightDuration(flight.departure || "00:00", flight.arrival || "00:00");
+            const airline = getAirline(flight.number || "SU000");
             ticket.innerHTML = `
                 <div class="ticket-header">
-                    <span class="ticket-number">${flight.number}</span>
+                    <span class="ticket-number">${flight.number || "Неизвестно"}</span>
                     <span class="ticket-date">${flight.date}</span>
                 </div>
                 <div class="ticket-airline">${airline}</div>
@@ -268,9 +276,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="ticket-arrow">→</span>
                     <span class="ticket-city">${flight.to}</span>
                 </div>
-                <div class="ticket-time">${flight.departure} - ${flight.arrival}</div>
+                <div class="ticket-time">${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"}</div>
                 <div class="ticket-duration">Продолжительность: ${duration}</div>
-                <div class="ticket-barcode">[=== Рейс №: ${flight.number} ===]</div>
+                <div class="ticket-barcode">[=== Рейс №: ${flight.number || "Неизвестно"} ===]</div>
             `;
             flightsSection.appendChild(ticket);
         });

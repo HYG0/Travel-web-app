@@ -144,6 +144,8 @@ def register_routes(app):
         response = redirect(url_for('index'))
         response.delete_cookie('session')
 
+        return redirect(url_for('index'))
+
     configure_routes(app)
 
     api.basic_search_flights(app)

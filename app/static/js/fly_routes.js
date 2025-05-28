@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Функция для генерации ключа
     function generateFlightKey(flight) {
-        return `times_${flight.from.replace(/[,\s]/g, '')}-${flight.to.replace(/[,\s]/g, '')}-${flight.date}`;
+        return `${flight.from}-${flight.to}-${flight.date}`;
     }
 
     flights.forEach((flight, index) => {
@@ -48,104 +48,77 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Обработчик кнопки сохранения маршрута
-    saveRouteButton.addEventListener("click", () => {
+    saveRouteButton.addEventListener("click", async () => {
         const flights = JSON.parse(localStorage.getItem("flights")) || [];
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
 
         const allTimesSelected = flights.every(flight => {
             const flightId = generateFlightKey(flight);
-            return flightsData[flightId]?.selectedIndex !== undefined;
+            return flightsData[`times_${flightId}`]?.selectedIndex !== undefined;
         });
 
         if (allTimesSelected || flights.length === 0) {
             const allCards = document.querySelectorAll(".flight-block");
             const sendPromises = Array.from(allCards).map(card => sendSingleRoute(card));
-            Promise.all(sendPromises).then(() => {
-                window.location.href = "/profile";
-            });
+            await Promise.all(sendPromises);
+            window.location.href = "/profile";
         } else {
             showCustomAlert("Пожалуйста, выберите время для всех рейсов перед сохранением маршрута.");
         }
     });
 
-    // Обработчик кнопки "Выбрать отель"
-    const hotelButtons = document.querySelectorAll(".select-hotel-btn");
-    hotelButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            const city = button.getAttribute("data-city");
-            const modalTitle = document.getElementById("modalCity");
-            modalTitle.textContent = city;
-
-            const hotelModal = new bootstrap.Modal(document.getElementById("hotelModal"));
-            hotelModal.show();
-
-            const selectHotelButtons = document.querySelectorAll(".select-hotel");
-            selectHotelButtons.forEach(btn => {
-                btn.onclick = () => {
-                    const hotelName = btn.parentElement.querySelector("h6").textContent;
-                    showCustomAlert(`Выбран отель: ${hotelName}`);
-                    hotelModal.hide();
-                };
-            });
-        });
-    });
+    // Обработчик кнопки "Выбрать отель" теперь в renderFlights
+    // (оставляем пустым здесь, так как будет вызываться динамически)
 
     async function initFlightNumbers() {
         const currentFlightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
         const flights = JSON.parse(localStorage.getItem("flights")) || [];
 
         for (const flight of flights) {
-            const flightKey = generateFlightKey(flight);
-            if (!currentFlightsData[flightKey]) {
+            const flightId = generateFlightKey(flight);
+            if (!currentFlightsData[`times_${flightId}`]) {
                 const options = await fetchFlightOptions(flight.from, flight.to, flight.date);
-                currentFlightsData[flightKey] = options;
+                currentFlightsData[`times_${flightId}`] = { times: options, selectedIndex: undefined };
             }
         }
 
         localStorage.setItem("flightsData", JSON.stringify(currentFlightsData));
     }
 
-
     async function fetchFlightOptions(from, to, date) {
-    try {
-        const cleanCity = city => city.split(',')[0].trim();
-        const params = new URLSearchParams({
-            origin: cleanCity(from),
-            destination: cleanCity(to),
-            departure_at: date,
-            one_way: 'true'
-        });
+        try {
+            const cleanCity = city => city.split(',')[0].trim();
+            const params = new URLSearchParams({
+                origin: cleanCity(from),
+                destination: cleanCity(to),
+                departure_at: date,
+                one_way: 'true'
+            });
 
-        const response = await fetch(`/api/search_flights?${params}`);
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.error || 'Ошибка загрузки данных');
+            const response = await fetch(`/api/search_flights?${params}`);
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error || 'Ошибка загрузки данных');
+            }
+
+            const { data } = await response.json();
+
+            return data.map(flight => {
+                const departureTime = new Date(flight.departure_at);
+                const arrivalTime = new Date(flight.arrival_at);
+
+                return {
+                    departure: departureTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                    arrival: arrivalTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                    number: `${flight.airline}${flight.flight_number}`,
+                    price: flight.price
+                };
+            });
+        } catch (error) {
+            console.error("Ошибка получения рейсов:", error);
+            return [];
         }
-
-        const { data } = await response.json();
-
-        return data.map(flight => {
-            const departureTime = new Date(flight.departure_at);
-            const arrivalTime = new Date(flight.arrival_at);  // Используем вычисленное время прилета
-
-            return {
-                departure: departureTime.toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }),
-                arrival: arrivalTime.toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }),
-                number: `${flight.airline}${flight.flight_number}`,
-                price: flight.price
-            };
-        });
-    } catch (error) {
-        console.error("Ошибка получения рейсов:", error);
-        return [];
     }
-}
 
     async function renderFlights(flights, savedData) {
         container.innerHTML = '';
@@ -154,13 +127,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             const flight = flights[i];
             const flightId = generateFlightKey(flight);
 
-            if (!savedData[flightId]) {
+            if (!savedData[`times_${flightId}`]) {
                 const times = await fetchFlightOptions(flight.from, flight.to, flight.date);
-                savedData[flightId] = times;
+                savedData[`times_${flightId}`] = { times: times, selectedIndex: undefined };
                 localStorage.setItem("flightsData", JSON.stringify(savedData));
             }
 
-            const times = savedData[flightId];
+            const times = savedData[`times_${flightId}`].times;
 
             const flightBlock = document.createElement("div");
             flightBlock.className = "flight-block";
@@ -186,6 +159,28 @@ document.addEventListener("DOMContentLoaded", async () => {
                 container.appendChild(document.createElement("hr"));
             }
         }
+
+        // Инициализация обработчиков для кнопок "Выбрать отель" после рендера
+        const hotelButtons = container.querySelectorAll(".select-hotel-btn");
+        hotelButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const city = button.getAttribute("data-city");
+                const modalTitle = document.getElementById("modalCity");
+                modalTitle.textContent = city;
+
+                const hotelModal = new bootstrap.Modal(document.getElementById("hotelModal"));
+                hotelModal.show();
+
+                const selectHotelButtons = document.querySelectorAll(".select-hotel-option"); // Исправлено на select-hotel-option
+                selectHotelButtons.forEach(btn => {
+                    btn.onclick = () => {
+                        const hotelName = btn.parentElement.querySelector("h6").textContent;
+                        showCustomAlert(`Выбран отель: ${hotelName}`);
+                        hotelModal.hide();
+                    };
+                });
+            });
+        });
     }
 
     function renderTimeSlots(block, flightId, times, savedData) {
@@ -194,7 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         times.forEach((time, index) => {
             const slot = document.createElement("div");
             slot.className = "time-slot";
-            if (savedData[flightId]?.selectedIndex === index) {
+            if (savedData[`times_${flightId}`]?.selectedIndex === index) {
                 slot.classList.add("selected", "centered");
             }
             slot.innerHTML = `
@@ -210,8 +205,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             slotsContainer.appendChild(slot);
         });
 
-        if (savedData[flightId]?.selectedIndex !== undefined) {
-            selectTimeSlot(block, flightId, savedData[flightId].selectedIndex, true);
+        if (savedData[`times_${flightId}`]?.selectedIndex !== undefined) {
+            selectTimeSlot(block, flightId, savedData[`times_${flightId}`].selectedIndex, true);
         }
     }
 
@@ -237,7 +232,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (!silent) {
             const currentData = JSON.parse(localStorage.getItem("flightsData")) || {};
-            currentData[flightId] = { selectedIndex: index };
+            if (!currentData[`times_${flightId}`]) {
+                currentData[`times_${flightId}`] = { times: [], selectedIndex: undefined };
+            }
+            currentData[`times_${flightId}`].selectedIndex = index;
             localStorage.setItem("flightsData", JSON.stringify(currentData));
         }
     }
@@ -253,8 +251,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (cancelBtn) cancelBtn.remove();
 
         const currentData = JSON.parse(localStorage.getItem("flightsData")) || {};
-        delete currentData[flightId]?.selectedIndex;
-        localStorage.setItem("flightsData", JSON.stringify(currentData));
+        if (currentData[`times_${flightId}`]) {
+            currentData[`times_${flightId}`].selectedIndex = undefined;
+            localStorage.setItem("flightsData", JSON.stringify(currentData));
+        }
     }
 
     function formatDate(dateString) {
