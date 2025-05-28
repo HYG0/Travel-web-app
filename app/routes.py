@@ -139,9 +139,10 @@ def register_routes(app):
         # Очищаем сессию
         session.clear()
         # Можно также очистить куки, если нужно
-        # response = redirect(url_for('login'))
-        # response.delete_cookie('session')
-        return redirect(url_for('index'))  # Или на страницу входа
+        # session.pop('user_id', None)
+        #Удаляем куку в браузере
+        response = redirect(url_for('index'))
+        response.delete_cookie('session')
 
     configure_routes(app)
 
