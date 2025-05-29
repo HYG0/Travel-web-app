@@ -411,7 +411,7 @@ body {
 
 .ticket {
     background: white;
-    border-left: 4px solid #007bff;
+    border-left: none;
     border-radius: 8px;
     padding: 4px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
@@ -491,7 +491,7 @@ body {
     text-align: center;
     font-size: 0.5rem;
     color: #000000;
-    border: 1px dashed #007bff;
+    border: none;
     padding: 2px;
     border-radius: 4px;
     font-weight: 500;

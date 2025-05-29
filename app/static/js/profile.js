@@ -192,178 +192,154 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Обработчик для кнопки "Скачать"
-    document.querySelector(".download-btn").addEventListener("click", async () => {
-        const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
-        const flights = JSON.parse(localStorage.getItem("flights")) || [];
+   document.querySelector(".download-btn").addEventListener("click", async () => {
+    console.log("Download button clicked");
+    const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
+    const flights = JSON.parse(localStorage.getItem("flights")) || [];
 
-        const selectedFlights = flights
-            .map(flight => {
-                const flightId = `${flight.from}-${flight.to}-${flight.date}`;
-                const timesKey = `times_${flightId}`;
-                if (flightsData[timesKey]?.selectedIndex !== undefined) {
-                    const selectedIndex = flightsData[timesKey].selectedIndex;
-                    const timeData = flightsData[timesKey]?.times?.[selectedIndex] || {};
-                    return { ...flight, ...timeData, flightId };
-                }
-                return null;
-            })
-            .filter(flight => flight !== null);
+    const selectedFlights = flights
+        .map(flight => {
+            const flightId = `${flight.from}-${flight.to}-${flight.date}`;
+            const timesKey = `times_${flightId}`;
+            if (flightsData[timesKey]?.selectedIndex !== undefined) {
+                const selectedIndex = flightsData[timesKey].selectedIndex;
+                const timeData = flightsData[timesKey]?.times?.[selectedIndex] || {};
+                return { ...flight, ...timeData, flightId };
+            }
+            return null;
+        })
+        .filter(flight => flight !== null);
 
-        if (selectedFlights.length === 0) {
-            // Показываем кастомный алерт
-            showCustomAlert("Нет рейсов для скачивания");
-            return;
+    if (selectedFlights.length === 0) {
+        showCustomAlert("Нет рейсов для скачивания");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    if (!jsPDF) {
+        console.error("jsPDF is not loaded");
+        showCustomAlert("Ошибка: библиотека jsPDF не подключена");
+        return;
+    }
+
+    const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const imgWidth = pageWidth - 2 * margin;
+    let currentY = margin;
+
+    const addPageIfNeeded = (elementHeight) => {
+        if (currentY + elementHeight > pageHeight - margin) {
+            pdf.addPage();
+            currentY = margin;
         }
+    };
 
-        const sortedFlights = selectedFlights.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        const chains = [];
-        const usedFlights = new Set();
-
-        sortedFlights.forEach((startFlight, startIndex) => {
-            if (usedFlights.has(startIndex)) return;
-
-            const chain = [startFlight];
-            usedFlights.add(startIndex);
-
-            for (let i = 0; i < sortedFlights.length; i++) {
-                if (usedFlights.has(i)) continue;
-
-                const lastFlightInChain = chain[chain.length - 1];
-                const currentFlight = sortedFlights[i];
-
-                if (lastFlightInChain.to === currentFlight.from && new Date(lastFlightInChain.date) <= new Date(currentFlight.date)) {
-                    chain.push(currentFlight);
-                    usedFlights.add(i);
-                }
-            }
-
-            if (chain.length > 0) {
-                chains.push(chain);
-            }
-        });
-
-        sortedFlights.forEach((flight, index) => {
-            if (!usedFlights.has(index)) {
-                chains.push([flight]);
-            }
-        });
-
+    const createTempContainer = () => {
         const tempContainer = document.createElement("div");
-        tempContainer.className = "ticket-container";
         tempContainer.style.position = "absolute";
         tempContainer.style.left = "-9999px";
         tempContainer.style.background = "#007bff";
         tempContainer.style.padding = "10px";
         tempContainer.style.width = "366px";
         tempContainer.style.borderRadius = "12px";
-
-        const header = document.createElement("div");
-        header.className = "pdf-header";
-        header.innerHTML = `
-            <div class="logo">FlyEasy ✈️</div>
-            <h1>Ваши билеты</h1>
-            <div class="issue-date">Дата выпуска: ${new Date().toLocaleDateString('ru-RU')}</div>
-        `;
-        tempContainer.appendChild(header);
-
-        if (chains.length > 0) {
-            const routesSection = document.createElement("div");
-            routesSection.className = "routes-section";
-            routesSection.innerHTML = `<h2>Ваши маршруты</h2>`;
-            
-            chains.forEach((chain, index) => {
-                const routeHeader = document.createElement("div");
-                routeHeader.className = "route-header";
-                routeHeader.innerHTML = `
-                    <h3>Маршрут ${index + 1}</h3>
-                    <div class="route-chain">
-                        ${chain.map(flight => flight.from).join(" → ")} → ${chain[chain.length - 1].to}
-                    </div>
-                `;
-                routesSection.appendChild(routeHeader);
-            });
-
-            tempContainer.appendChild(routesSection);
-        }
-
-        const flightsSection = document.createElement("div");
-        flightsSection.className = "flights-section";
-        flightsSection.innerHTML = `<h2>Все рейсы</h2>`;
-
-        selectedFlights.forEach(flight => {
-            const ticket = document.createElement("div");
-            ticket.className = "ticket";
-            const duration = calculateFlightDuration(flight.departure || "00:00", flight.arrival || "00:00");
-            const airline = getAirline(flight.number || "SU000");
-            ticket.innerHTML = `
-                <div class="ticket-header">
-                    <span class="ticket-number">${flight.number || "Неизвестно"}</span>
-                    <span class="ticket-date">${flight.date}</span>
-                </div>
-                <div class="ticket-airline">${airline}</div>
-                <div class="ticket-route">
-                    <span class="ticket-city">${flight.from}</span>
-                    <span class="ticket-arrow">→</span>
-                    <span class="ticket-city">${flight.to}</span>
-                </div>
-                <div class="ticket-time">${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"}</div>
-                <div class="ticket-duration">Продолжительность: ${duration}</div>
-                <div class="ticket-barcode">[=== Рейс №: ${flight.number || "Неизвестно"} ===]</div>
-            `;
-            flightsSection.appendChild(ticket);
-        });
-
-        tempContainer.appendChild(flightsSection);
-
-        const footer = document.createElement("div");
-        footer.className = "pdf-footer";
-        footer.innerHTML = `
-            <div class="service-info">
-                <h3>О нас</h3>
-                <p>Мы — ваш надёжный помощник в планировании путешествий! Составляйте маршруты, сохраняйте билеты и наслаждайтесь поездкой.</p>
-            </div>
-            <div class="wishes">
-                <p>Хорошего пути! ✈️</p>
-            </div>
-        `;
-        tempContainer.appendChild(footer);
-
         document.body.appendChild(tempContainer);
+        return tempContainer;
+    };
 
-        const canvas = await html2canvas(tempContainer, {
+    const renderToPDF = async (container) => {
+    try {
+        const canvas = await html2canvas(container, {
             scale: 2,
             useCORS: true,
             backgroundColor: "#007bff"
         });
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: "a4"
-        });
-
-        const imgWidth = 190;
-        const pageHeight = pdf.internal.pageSize.height;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        let heightLeft = imgHeight;
-        let position = 10;
-
-        pdf.addImage(canvas.toDataURL("image/jpeg", 1.0), "JPEG", 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight - 20;
-
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight + 10;
-            pdf.addPage();
-            pdf.addImage(canvas.toDataURL("image/jpeg", 1.0), "JPEG", 10, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight - 20;
+        if (!canvas) {
+            console.error("html2canvas failed to render");
+            throw new Error("Failed to render canvas");
         }
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        addPageIfNeeded(imgHeight);
+        pdf.addImage(canvas.toDataURL("image/jpeg", 1.0), "JPEG", margin, currentY, imgWidth, imgHeight);
+        currentY += imgHeight + 5;
+        document.body.removeChild(container); // <--- правильный элемент
+    } catch (error) {
+        console.error("Error in renderToPDF:", error);
+        showCustomAlert("Ошибка при рендеринге PDF");
+    }
+};
 
-        pdf.save(`my_tickets_${new Date().toISOString().split("T")[0]}.pdf`);
+    // Заголовок
+    const headerContainer = createTempContainer();
+    const header = document.createElement("div");
+    header.className = "pdf-header";
+    header.innerHTML = `
+        <div class="logo">FlyEasy ✈️</div>
+        <h1>Ваши билеты</h1>
+        <div class="issue-date">Дата выпуска: ${new Date().toLocaleDateString('ru-RU')}</div>
+    `;
+    headerContainer.appendChild(header);
+    await renderToPDF(headerContainer);
 
-        document.body.removeChild(tempContainer);
-    });
+    // Рейсы
+    const flightsSectionContainer = createTempContainer();
+    const flightsSection = document.createElement("div");
+    flightsSection.className = "flights-section";
+    flightsSection.innerHTML = `<h2>Все рейсы</h2>`;
+    flightsSectionContainer.appendChild(flightsSection);
+    await renderToPDF(flightsSectionContainer);
+
+    for (const flight of selectedFlights) {
+        const ticketContainer = createTempContainer();
+        const ticket = document.createElement("div");
+        ticket.className = "ticket";
+        const duration = calculateFlightDuration(flight.departure || "00:00", flight.arrival || "00:00");
+        const airline = getAirline(flight.number || "SU000");
+        ticket.innerHTML = `
+            <div class="ticket-header">
+                <span class="ticket-number">${flight.number || "Неизвестно"}</span>
+                <span class="ticket-date">${flight.date}</span>
+            </div>
+            <div class="ticket-airline">${airline}</div>
+            <div class="ticket-route">
+                <span class="ticket-city">${flight.from}</span>
+                <span class="ticket-arrow">→</span>
+                <span class="ticket-city">${flight.to}</span>
+            </div>
+            <div class="ticket-time">${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"}</div>
+            <div class="ticket-duration">Продолжительность: ${duration}</div>
+            <div class="ticket-barcode">Рейс №: ${flight.number || "Неизвестно"}</div>
+        `;
+        ticketContainer.appendChild(ticket);
+        await renderToPDF(ticketContainer);
+    }
+
+    // Футер
+    const footerContainer = createTempContainer();
+    const footer = document.createElement("div");
+    footer.className = "pdf-footer";
+    footer.innerHTML = `
+        <div class="service-info">
+            <h3>О нас</h3>
+            <p>Мы — ваш надёжный помощник в планировании путешествий! Составляйте маршруты, сохраняйте билеты и наслаждайтесь поездкой.</p>
+        </div>
+        <div class="wishes">
+            <p>Хорошего пути! ✈️</p>
+        </div>
+    `;
+    footerContainer.appendChild(footer);
+    await renderToPDF(footerContainer);
+
+    console.log("Saving PDF");
+    pdf.save(`my_tickets_${new Date().toISOString().split("T")[0]}.pdf`);
+    console.log("PDF save attempted");
+});
 
     // Обработчики событий
     avatarLabel.addEventListener("click", () => {
