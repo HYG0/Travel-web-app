@@ -47,6 +47,18 @@ document.addEventListener("DOMContentLoaded", () => {
             border: 1px solid #ff4d4f !important;
             background-color: #fff0f0;
         }
+        .flight-results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .flight-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
     `;
     document.head.appendChild(style);
 });
@@ -59,11 +71,11 @@ function addFlight() {
     newFlight.innerHTML = `
         <button class="remove-btn">✖</button>
         <div class="mb-2">
-            <input type="text" class="form-control city-input" placeholder="Откуда">
+            <input type="text" class="form-control city-input from-city" placeholder="Откуда">
             <ul class="suggestions"></ul>
         </div>
         <div class="mb-2">
-            <input type="text" class="form-control city-input" placeholder="Куда">
+            <input type="text" class="form-control city-input to-city" placeholder="Куда">
             <ul class="suggestions"></ul>
         </div>
         <div class="mb-2">
@@ -87,7 +99,6 @@ function addFlight() {
     `;
     flightContainer.appendChild(newFlight);
 
-    // Подключение обработчиков для нового элемента
     setupFlightCard(newFlight);
     updateRemoveButtons(); // Обновляем видимость кнопок после добавления
     flightContainer.scrollTop = flightContainer.scrollHeight;
@@ -108,52 +119,72 @@ async function goNext() {
     let hasInvalidDate = false;
     let hasInvalidCost = false;
 
-    for (const card of flightCards) {
-        const inputs = card.querySelectorAll('input');
-        const from = inputs[0].value.trim();
-        const to = inputs[1].value.trim();
-        const date = inputs[2].value;
-        const costMin = parseFloat(inputs[3].value) || 0;
-        const costMax = parseFloat(inputs[4].value) || Infinity;
-        const currency = card.querySelector('.currency-input').value;
+    // Очистка устаревших данных в flightsData для всех рейсов
+    const currentFlightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
 
+    for (const card of flightCards) {
+        // Используем селекторы по классам вместо индексов
+        const fromInput = card.querySelector('.from-city');
+        const toInput = card.querySelector('.to-city');
+        const dateInput = card.querySelector('.date-input');
+        const costMinInput = card.querySelector('.cost-min-input');
+        const costMaxInput = card.querySelector('.cost-max-input');
+        const currencyInput = card.querySelector('.currency-input');
+
+        const from = fromInput.value.trim();
+        const to = toInput.value.trim();
+        const date = dateInput.value;
+        const costMin = parseFloat(costMinInput.value) || 0;
+        const costMax = parseFloat(costMaxInput.value) || Infinity;
+        const currency = currencyInput.value;
+
+        // Валидация полей
         if (!from || !to) {
             hasInvalidFields = true;
-            if (!from) inputs[0].classList.add('is-invalid');
-            if (!to) inputs[1].classList.add('is-invalid');
+            if (!from) fromInput.classList.add('is-invalid');
+            if (!to) toInput.classList.add('is-invalid');
         } else if (date) {
             const inputDate = new Date(date);
             inputDate.setHours(0, 0, 0, 0);
 
             if (inputDate < today) {
                 hasInvalidDate = true;
-                inputs[2].classList.add('is-invalid');
+                dateInput.classList.add('is-invalid');
             } else if (costMin > costMax) {
                 hasInvalidCost = true;
-                inputs[3].classList.add('is-invalid');
-                inputs[4].classList.add('is-invalid');
+                costMinInput.classList.add('is-invalid');
+                costMaxInput.classList.add('is-invalid');
             } else {
-                // Поиск рейсов с учетом диапазона цен и валюты
-                const response = await fetch(`/api/search_flights?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&departure_at=${date}&cy=${currency}&cost_min=${costMin}&cost_max=${costMax}`);
-                const search_results = await response.json();
+                // Запрос к API для получения реальных данных
+                const response = await fetch(`/api/search_flights?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&departure_at=${date}&currency=${currency}&cost_min=${costMin}&cost_max=${costMax}`);
+                const searchResults = await response.json();
+
                 if (!response.ok) {
                     showCustomAlert('Ошибка поиска рейсов');
                     return;
                 }
 
-                if (!search_results.data || search_results.data.length === 0) {
+                if (!searchResults.data || searchResults.data.length === 0) {
                     showCustomAlert('Рейсы в заданном диапазоне цен не найдены');
                     return;
                 }
 
+                // Очистка устаревших данных для текущего flightId
+                const flightId = `${from}-${to}-${date}`;
+                if (currentFlightsData[`times_${flightId}`]) {
+                    delete currentFlightsData[`times_${flightId}`];
+                }
+
+                // Используем данные из API для формирования объекта flight
+                const firstFlight = searchResults.data[0]; // Берем первый рейс для получения origin и destination
                 flights.push({
-                    from,
-                    to,
+                    from: `${fromInput.value}`, // Сохраняем пользовательский ввод для отображения
+                    to: `${toInput.value}`,     // Сохраняем пользовательский ввод для отображения
                     date,
                     costMin,
                     costMax,
                     currency,
-                    available_flights: search_results.data
+                    available_flights: searchResults.data // Реальные данные из API
                 });
             }
         }
@@ -174,6 +205,8 @@ async function goNext() {
         return;
     }
 
+    // Сохраняем обновленные данные flightsData
+    localStorage.setItem("flightsData", JSON.stringify(currentFlightsData));
     localStorage.setItem("flights", JSON.stringify(flights));
     window.location.href = "/routes";
 }
@@ -361,11 +394,11 @@ function restoreSavedFlights() {
         card.innerHTML = `
             <button class="remove-btn">✖</button>
             <div class="mb-2">
-                <input type="text" class="form-control city-input" placeholder="Откуда" value="${from}">
+                <input type="text" class="form-control city-input from-city" placeholder="Откуда" value="${from}">
                 <ul class="suggestions"></ul>
             </div>
             <div class="mb-2">
-                <input type="text" class="form-control city-input" placeholder="Куда" value="${to}">
+                <input type="text" class="form-control city-input to-city" placeholder="Куда" value="${to}">
                 <ul class="suggestions"></ul>
             </div>
             <div class="mb-2">

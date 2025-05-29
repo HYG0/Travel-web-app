@@ -3,6 +3,9 @@ import requests
 import datetime
 from .citys import get_city_iata
 
+def log(message):
+    print(f"[1] {message}")
+
 def basic_search_flights(app):
     @app.route('/search_cities')
     def search_cities():
@@ -47,35 +50,68 @@ def basic_search_flights(app):
             cost_min = float(request.args.get('cost_min', 0))
             cost_max = float(request.args.get('cost_max', float('inf')))
 
-            origin_iata = get_city_iata(origin.split(',')[0].strip())
-            destination_iata = get_city_iata(destination.split(',')[0].strip())
+            log(f"Received params: origin={origin}, destination={destination}, departure_at={departure_at}, currency={currency}, cost_min={cost_min}, cost_max={cost_max}")
 
-            if origin_iata is None or destination_iata is None:
-                return jsonify([])
+            if not origin or not destination or not departure_at:
+                return jsonify({'data': [], 'error': 'Missing required parameters'})
+
+            origin_iatas = get_city_iata(origin.split(',')[0].strip())
+            destination_iatas = get_city_iata(destination.split(',')[0].strip())
+            log(f"Resolved IATA: origin={origin_iatas}, destination={destination_iatas}")
+
+            if origin_iatas is None or destination_iatas is None:
+                return jsonify({'data': [], 'error': 'Invalid city IATA code'})
 
             token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
-            params = {
-                'origin': origin_iata,
-                'destination': destination_iata,
-                'departure_at': departure_at,
-                'currency': currency,
-                'limit': 3,
-                'one_way': 'false',
-                'token': token,
-            }
-            
+            all_flights = []
             url = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
-            response = requests.get(url, params=params)
-            response.raise_for_status()
+            page = 1
+            max_pages = 10  # Ограничим количество страниц для избежания бесконечного цикла
 
-            data = response.json()
+            for orig_iata in (origin_iatas if isinstance(origin_iatas, list) else [origin_iatas]):
+                for dest_iata in (destination_iatas if isinstance(destination_iatas, list) else [destination_iatas]):
+                    while page <= max_pages:
+                        params = {
+                            'origin': orig_iata,
+                            'destination': dest_iata,
+                            'departure_at': departure_at,
+                            'currency': currency,
+                            'limit': 100,  # Максимальный лимит
+                            'page': page,
+                            'one_way': 'false',
+                            'token': token,
+                        }
+                        response = requests.get(url, params=params)
+                        response.raise_for_status()
+                        data = response.json()
+                        raw_flights = data.get('data', [])
+                        if not raw_flights:  # Если больше нет данных, выходим из цикла
+                            break
+                        all_flights.extend(raw_flights)
+                        page += 1
+
+            log(f"Raw flights count: {len(all_flights)}")
+            log(f"Raw prices: {[float(item.get('price', 0)) for item in all_flights]}")
 
             flights = []
-            for item in data.get('data', []):
-                price = item.get('price', 0)
-                if cost_min <= price <= cost_max:
+            for item in all_flights:
+                price = item.get('price')
+                if price is None:
+                    log(f"Skipping flight with missing price: {item}")
+                    continue
+                try:
+                    price = float(price)
+                except (TypeError, ValueError) as e:
+                    log(f"Skipping flight with invalid price {price}: {e}")
+                    continue
+
+                if not (cost_min <= price <= cost_max):
+                    log(f"Skipping flight with price {price} (outside range {cost_min}-{cost_max})")
+                    continue
+
+                try:
                     departure_time = datetime.datetime.fromisoformat(item['departure_at'].replace('Z', '+00:00'))
-                    duration = datetime.timedelta(minutes=item['duration'])
+                    duration = datetime.timedelta(minutes=item.get('duration', 0))
                     arrival_time = departure_time + duration
 
                     flights.append({
@@ -91,21 +127,39 @@ def basic_search_flights(app):
                         'transfers': item.get('transfers'),
                         'link': f"https://www.aviasales.ru{item.get('link')}"
                     })
+                except (KeyError, TypeError, ValueError) as e:
+                    log(f"Skipping invalid flight data: {e}")
+                    continue
 
-            print(flights)
+            invalid_flights = [f for f in flights if not (cost_min <= f['price'] <= cost_max)]
+            if invalid_flights:
+                log(f"Error: Found flights with prices outside range after filtering: {[f['price'] for f in invalid_flights]}")
+                return jsonify({'data': [], 'error': 'Internal filtering error'}), 500
 
-            return jsonify({'data': flights, 'currency': currency})
+            log(f"Filtered flights count: {len(flights)}")
+            log(f"Filtered prices: {[flight['price'] for flight in flights]}")
+
+            if not flights:
+                return jsonify({'data': [], 'message': 'No flights found in the specified price range'})
+
+            return jsonify({
+                'data': flights,
+                'currency': currency,
+                'raw_count': len(all_flights),
+                'filtered_count': len(flights)
+            })
 
         except Exception as e:
+            log(f"Error in search_flights: {str(e)}")
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/test_search_flights')
     def test_search_flights():
         origin = 'MOW'
         destination = 'SVX'
-        departure_at = '2025-05-31'
-        currency = 'rub'
-        limit = 6
+        departure_at = '2025-05-30'
+        currency = 'RUB'
+        limit = 100
 
         token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
         if not token:
