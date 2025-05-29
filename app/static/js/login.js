@@ -97,7 +97,8 @@ if (loginSubmitBtn) {
         const passwordInput = document.querySelector('.login input[type="password"]');
 
         if (!emailInput || !passwordInput) {
-            showNotification('Ошибка формы. Пожалуйста, обновите страницу.', true);
+            showNotification('Ошибка формы. Пожалуйста, подождите...', true);
+            window.location.reload();
             return;
         }
 
