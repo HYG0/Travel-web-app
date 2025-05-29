@@ -37,78 +37,73 @@ def basic_search_flights(app):
 
         return jsonify(results)
 
-
     @app.route('/api/search_flights', methods=['GET'])
     def search_flights():
         try:
-            # Получение параметров
             origin = request.args.get('origin')
             destination = request.args.get('destination')
             departure_at = request.args.get('departure_at')
-            one_way = request.args.get('one_way', 'true')
+            currency = request.args.get('currency', 'RUB')
+            cost_min = float(request.args.get('cost_min', 0))
+            cost_max = float(request.args.get('cost_max', float('inf')))
 
-            # Преобразование названий городов в IATA коды
             origin_iata = get_city_iata(origin.split(',')[0].strip())
             destination_iata = get_city_iata(destination.split(',')[0].strip())
 
             if origin_iata is None or destination_iata is None:
                 return jsonify([])
 
-            # Параметры для запроса к Aviasales API
             token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
             params = {
                 'origin': origin_iata,
                 'destination': destination_iata,
                 'departure_at': departure_at,
-                'currency': 'rub',
-                'limit': 10,
+                'currency': currency,
+                'limit': 3,
+                'one_way': 'false',
                 'token': token,
-                'one_way': one_way,
-                'sorting': 'price'
             }
-
-            # Запрос к API Aviasales
+            
             url = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
             response = requests.get(url, params=params)
             response.raise_for_status()
 
             data = response.json()
 
-            # Форматирование ответа с расчетом времени прилета
             flights = []
             for item in data.get('data', []):
-                # Парсинг времени вылета
-                departure_time = datetime.datetime.fromisoformat(item['departure_at'].replace('Z', '+00:00'))
+                price = item.get('price', 0)
+                if cost_min <= price <= cost_max:
+                    departure_time = datetime.datetime.fromisoformat(item['departure_at'].replace('Z', '+00:00'))
+                    duration = datetime.timedelta(minutes=item['duration'])
+                    arrival_time = departure_time + duration
 
-                # Расчет времени прилета (время вылета + продолжительность)
-                duration = datetime.timedelta(minutes=item['duration'])
-                arrival_time = departure_time + duration
+                    flights.append({
+                        'origin': item.get('origin'),
+                        'destination': item.get('destination'),
+                        'price': price,
+                        'currency': currency,
+                        'airline': item.get('airline'),
+                        'flight_number': item.get('flight_number'),
+                        'departure_at': item.get('departure_at'),
+                        'arrival_at': arrival_time.isoformat(),
+                        'duration': item.get('duration'),
+                        'transfers': item.get('transfers'),
+                        'link': f"https://www.aviasales.ru{item.get('link')}"
+                    })
 
-                flights.append({
-                    'origin': item.get('origin'),
-                    'destination': item.get('destination'),
-                    'price': item.get('price'),
-                    'airline': item.get('airline'),
-                    'flight_number': item.get('flight_number'),
-                    'departure_at': item.get('departure_at'),
-                    'arrival_at': arrival_time.isoformat(),  # Добавляем вычисленное время прилета
-                    'duration': item.get('duration'),
-                    'transfers': item.get('transfers'),
-                    'link': f"https://www.aviasales.ru{item.get('link')}"
-                })
+            print(flights)
 
-            return jsonify({'data': flights})
+            return jsonify({'data': flights, 'currency': currency})
 
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
-
-    # Тестовый маршрут с жестко заданными параметрами (для отладки)
     @app.route('/api/test_search_flights')
     def test_search_flights():
         origin = 'MOW'
-        destination = 'AER'
-        departure_at = '2025-06-05'
+        destination = 'SVX'
+        departure_at = '2025-05-31'
         currency = 'rub'
         limit = 6
 
@@ -124,8 +119,7 @@ def basic_search_flights(app):
             'currency': currency,
             'limit': limit,
             'token': token,
-            'one_way': 'true',
-            'sorting': 'price'
+            'one_way': 'false',
         }
 
         response = requests.get(url, params=params)

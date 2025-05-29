@@ -69,6 +69,21 @@ function addFlight() {
         <div class="mb-2">
             <input type="date" class="form-control date-input" min="" max="2100-12-31">
         </div>
+        <div class="mb-2">
+            <label>Диапазон стоимости билета</label>
+            <div class="d-flex gap-2">
+                <input type="number" class="form-control cost-min-input" placeholder="От" step="0.01" min="0">
+                <input type="number" class="form-control cost-max-input" placeholder="До" step="0.01" min="0">
+            </div>
+        </div>
+        <div class="mb-2">
+            <label>Выбор валюты для оплаты</label>
+            <select class="form-control currency-input">
+                <option value="RUB">RUB</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+            </select>
+        </div>
     `;
     flightContainer.appendChild(newFlight);
 
@@ -81,7 +96,7 @@ function removeFlight(button) {
     button.parentElement.remove();
 }
 
-function goNext() {
+async function goNext() {
     const flightCards = document.querySelectorAll('.flight-card');
     const flights = [];
     const today = new Date();
@@ -89,45 +104,74 @@ function goNext() {
 
     let hasInvalidFields = false;
     let hasInvalidDate = false;
+    let hasInvalidCost = false;
 
-    // Проверка всех карточек на заполненность полей "Откуда" и "Куда"
-    flightCards.forEach(card => {
+    for (const card of flightCards) {
         const inputs = card.querySelectorAll('input');
         const from = inputs[0].value.trim();
         const to = inputs[1].value.trim();
         const date = inputs[2].value;
+        const costMin = parseFloat(inputs[3].value) || 0;
+        const costMax = parseFloat(inputs[4].value) || Infinity;
+        const currency = card.querySelector('.currency-input').value;
 
         if (!from || !to) {
             hasInvalidFields = true;
             if (!from) inputs[0].classList.add('is-invalid');
             if (!to) inputs[1].classList.add('is-invalid');
-        } else if (from && to && date) {
+        } else if (date) {
             const inputDate = new Date(date);
             inputDate.setHours(0, 0, 0, 0);
 
-            // Проверка даты только если поля заполнены
             if (inputDate < today) {
                 hasInvalidDate = true;
                 inputs[2].classList.add('is-invalid');
+            } else if (costMin > costMax) {
+                hasInvalidCost = true;
+                inputs[3].classList.add('is-invalid');
+                inputs[4].classList.add('is-invalid');
             } else {
-                flights.push({ from, to, date });
+                // Поиск рейсов с учетом диапазона цен и валюты
+                const response = await fetch(`/api/search_flights?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&departure_at=${date}&cy=${currency}&cost_min=${costMin}&cost_max=${costMax}`);
+                const search_results = await response.json();
+                if (!response.ok) {
+                    showCustomAlert('Ошибка поиска рейсов');
+                    return;
+                }
+
+                if (!search_results.data || search_results.data.length === 0) {
+                    showCustomAlert('Рейсы в заданном диапазоне цен не найдены');
+                    return;
+                }
+
+                flights.push({
+                    from,
+                    to,
+                    date,
+                    costMin,
+                    costMax,
+                    currency,
+                    available_flights: search_results.data
+                });
             }
         }
-    });
+    }
 
-    // Приоритет проверки полей: показываем уведомление только о незаполненных полях
     if (hasInvalidFields) {
         showCustomAlert("Заполните поля 'Откуда' и 'Куда'");
         return;
     }
 
-    // Проверка даты только если поля заполнены
     if (hasInvalidDate) {
         showCustomAlert("Выберите корректную дату");
         return;
     }
 
-    // Если все проверки пройдены, сохраняем и переходим
+    if (hasInvalidCost) {
+        showCustomAlert("Минимальная стоимость не может превышать максимальную");
+        return;
+    }
+
     localStorage.setItem("flights", JSON.stringify(flights));
     window.location.href = "/routes";
 }
@@ -138,7 +182,6 @@ function showCustomAlert(message) {
     let messageBox = document.getElementById("custom-alert-message");
     let closeBtn = document.getElementById("custom-alert-close");
 
-    // Если элементы уведомления ещё не созданы, создаём их динамически
     if (!alertBox || !messageBox || !closeBtn) {
         const alertContainer = document.createElement('div');
         alertContainer.id = "custom-alert";
@@ -149,24 +192,20 @@ function showCustomAlert(message) {
         `;
         document.body.appendChild(alertContainer);
 
-        // Обновляем ссылки на элементы
         alertBox = document.getElementById("custom-alert");
         messageBox = document.getElementById("custom-alert-message");
         closeBtn = document.getElementById("custom-alert-close");
 
-        // Добавляем обработчик для кнопки закрытия
         closeBtn.addEventListener("click", () => {
             alertBox.classList.remove("show");
             setTimeout(() => alertBox.classList.add("hidden"), 300);
         });
     }
 
-    // Показываем уведомление
     messageBox.textContent = message;
     alertBox.classList.remove("hidden");
     alertBox.classList.add("show");
 
-    // Автоматическое скрытие через 2.5 секунды
     setTimeout(() => {
         alertBox.classList.remove("show");
         setTimeout(() => alertBox.classList.add("hidden"), 300);
@@ -174,15 +213,12 @@ function showCustomAlert(message) {
 }
 
 function setupFlightCard(card) {
-    // Обработчик для кнопки удаления
     card.querySelector('.remove-btn').addEventListener('click', function() {
         removeFlight(this);
     });
     
-    // Подключение автоподстановки городов
     attachCityAutocompleteEvents(card.querySelectorAll('.city-input'));
     
-    // Установка ограничений даты
     const dateInputs = card.querySelectorAll('.date-input');
     const today = new Date();
     const todayFormatted = formatDateForInput(today);
@@ -194,9 +230,17 @@ function setupFlightCard(card) {
         input.addEventListener('input', handleManualDateInput);
     });
 
-    // Добавляем обработчик для снятия подсветки ошибки при вводе текста в поля "Откуда" и "Куда"
     const cityInputs = card.querySelectorAll('.city-input');
     cityInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if (input.value.trim()) {
+                input.classList.remove('is-invalid');
+            }
+        });
+    });
+
+    const costInputs = card.querySelectorAll('.cost-min-input, .cost-max-input');
+    costInputs.forEach(input => {
         input.addEventListener('input', () => {
             if (input.value.trim()) {
                 input.classList.remove('is-invalid');
@@ -295,7 +339,7 @@ function restoreSavedFlights() {
     const container = document.getElementById('flights-container');
     container.innerHTML = '';
 
-    flights.forEach(({ from, to, date }) => {
+    flights.forEach(({ from, to, date, costMin, costMax, currency }) => {
         const card = document.createElement('div');
         card.classList.add('flight-card');
         card.innerHTML = `
@@ -311,6 +355,21 @@ function restoreSavedFlights() {
             <div class="mb-2">
                 <input type="date" class="form-control date-input" value="${date}" min="" max="2100-12-31">
             </div>
+            <div class="mb-2">
+                <label>Диапазон стоимости билета</label>
+                <div class="d-flex gap-2">
+                    <input type="number" class="form-control cost-min-input" placeholder="От" step="0.01" min="0" value="${costMin || ''}">
+                    <input type="number" class="form-control cost-max-input" placeholder="До" step="0.01" min="0" value="${costMax || ''}">
+                </div>
+            </div>
+            <div class="mb-2">
+                <label>Выбор валюты для оплаты</label>
+                <select class="form-control currency-input">
+                    <option value="RUB" ${currency === 'RUB' ? 'selected' : ''}>RUB</option>
+                    <option value="USD" ${currency === 'USD' ? 'selected' : ''}>USD</option>
+                    <option value="EUR" ${currency === 'EUR' ? 'selected' : ''}>EUR</option>
+                </select>
+            </div>
         `;
         container.appendChild(card);
         setupFlightCard(card);
@@ -319,10 +378,7 @@ function restoreSavedFlights() {
 
 // Инициализация при загрузке страницы
 document.addEventListener("DOMContentLoaded", () => {
-    // Восстановление сохраненных рейсов
     restoreSavedFlights();
-    
-    // Привязка обработчиков для кнопок добавления и перехода
     document.getElementById('add-flight-btn')?.addEventListener('click', addFlight);
     document.getElementById('next-btn')?.addEventListener('click', goNext);
 });

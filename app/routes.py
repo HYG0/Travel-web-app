@@ -112,6 +112,14 @@ def register_routes(app):
 
     @app.route('/entry')
     def city_form():
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect(url_for('login'))
+        
+        user = Users.query.get(user_id)
+        if not user:
+            return redirect(url_for('login'))
+        
         return render_template('city_form.html')
 
     @app.route('/routes')
