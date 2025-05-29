@@ -89,11 +89,13 @@ function addFlight() {
 
     // Подключение обработчиков для нового элемента
     setupFlightCard(newFlight);
+    updateRemoveButtons(); // Обновляем видимость кнопок после добавления
     flightContainer.scrollTop = flightContainer.scrollHeight;
 }
 
 function removeFlight(button) {
     button.parentElement.remove();
+    updateRemoveButtons(); // Обновляем видимость кнопок после удаления
 }
 
 async function goNext() {
@@ -174,6 +176,20 @@ async function goNext() {
 
     localStorage.setItem("flights", JSON.stringify(flights));
     window.location.href = "/routes";
+}
+
+// Новая функция для управления видимостью кнопок удаления
+function updateRemoveButtons() {
+    const flightCards = document.querySelectorAll('.flight-card');
+    if (flightCards.length === 0) return;
+
+    flightCards.forEach((card, index) => {
+        const removeBtn = card.querySelector('.remove-btn');
+        if (removeBtn) {
+            // Скрываем крестик у первого перелёта, если он единственный
+            removeBtn.style.display = (flightCards.length === 1 && index === 0) ? 'none' : 'flex';
+        }
+    });
 }
 
 // Вспомогательные функции
@@ -374,6 +390,7 @@ function restoreSavedFlights() {
         container.appendChild(card);
         setupFlightCard(card);
     });
+    updateRemoveButtons(); // Обновляем видимость кнопок после восстановления
 }
 
 // Инициализация при загрузке страницы
@@ -381,4 +398,5 @@ document.addEventListener("DOMContentLoaded", () => {
     restoreSavedFlights();
     document.getElementById('add-flight-btn')?.addEventListener('click', addFlight);
     document.getElementById('next-btn')?.addEventListener('click', goNext);
+    updateRemoveButtons(); // Инициализация видимости кнопок при загрузке
 });

@@ -17,7 +17,9 @@
                 <div class="profile-circle" id="profile-circle"></div>
             </a>
         </div>
-        <div id="flight-summary"></div>
+        <div id="flight-summary">
+            <div class="loading">Загрузка рейсов...</div>
+        </div>
         <div class="add-flight-button">
             <a href="/entry" class="add-flight-link">+ Добавить перелёт</a>
         </div>
@@ -28,43 +30,43 @@
 
     <!-- Модальное окно Bootstrap -->
     <div class="modal fade" id="hotelModal" tabindex="-1" aria-labelledby="hotelModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="hotelModalLabel">Отели в <span id="modalCity"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <ul class="list-group" id="hotelOptions">
-                    <li class="list-group-item">
-                        <div class="hotel-rating">★★★★☆</div>
-                        <h6><i class="fas fa-hotel hotel-icon"></i> Luxe Inn</h6>
-                        <p>Расположение: центр города, 500 м от метро</p>
-                        <p>Цена: <strong>5000 ₽/ночь</strong></p>
-                        <button class="btn btn-primary btn-sm select-hotel-option">Выбрать этот отель</button>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="hotel-rating">★★★☆☆</div>
-                        <h6><i class="fas fa-hotel hotel-icon"></i> City Comfort</h6>
-                        <p>Расположение: рядом с аэропортом, 1.2 км от центра</p>
-                        <p>Цена: <strong>3500 ₽/ночь</strong></p>
-                        <button class="btn btn-primary btn-sm select-hotel-option">Выбрать этот отель</button>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="hotel-rating">★★★★★</div>
-                        <h6><i class="fas fa-hotel hotel-icon"></i> River View</h6>
-                        <p>Расположение: набережная, вид на реку</p>
-                        <p>Цена: <strong>7000 ₽/ночь</strong></p>
-                        <button class="btn btn-primary btn-sm select-hotel-option">Выбрать этот отель</button>
-                    </li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hotelModalLabel">Отели в <span id="modalCity"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group" id="hotelOptions">
+                        <li class="list-group-item">
+                            <div class="hotel-rating">★★★★☆</div>
+                            <h6><i class="fas fa-hotel hotel-icon"></i> Luxe Inn</h6>
+                            <p>Расположение: центр города, 500 м от метро</p>
+                            <p>Цена: <strong>5000 ₽/ночь</strong></p>
+                            <button class="btn btn-primary btn-sm select-hotel-option">Выбрать этот отель</button>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="hotel-rating">★★★☆☆</div>
+                            <h6><i class="fas fa-hotel hotel-icon"></i> City Comfort</h6>
+                            <p>Расположение: рядом с аэропортом, 1.2 км от центра</p>
+                            <p>Цена: <strong>3500 ₽/ночь</strong></p>
+                            <button class="btn btn-primary btn-sm select-hotel-option">Выбрать этот отель</button>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="hotel-rating">★★★★★</div>
+                            <h6><i class="fas fa-hotel hotel-icon"></i> River View</h6>
+                            <p>Расположение: набережная, вид на реку</p>
+                            <p>Цена: <strong>7000 ₽/ночь</strong></p>
+                            <button class="btn btn-primary btn-sm select-hotel-option">Выбрать этот отель</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Кастомное уведомление -->
     <div id="custom-alert" class="custom-alert hidden">

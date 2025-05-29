@@ -63,7 +63,7 @@
         </div>
     </div>
 
-    <!-- Новое модальное окно для подтверждения удаления -->
+    <!-- Модальное окно для подтверждения удаления -->
     <div class="modal" id="confirm-delete-modal">
         <div class="modal-content">
             <h3>Подтверждение</h3>
@@ -73,6 +73,11 @@
                 <button id="confirm-no" class="confirm-btn">Нет</button>
             </div>
         </div>
+    </div>
+
+    <!-- Контейнер для кастомного алерта -->
+    <div id="custom-alert" class="hidden">
+        <span id="custom-alert-message"></span>
     </div>
 
     <script defer src="{{ url_for('static', filename='js/profile.js') }}"></script>

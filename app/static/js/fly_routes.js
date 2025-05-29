@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const container = document.getElementById("flight-summary");
+    const loadingIndicator = container.querySelector(".loading");
     const flights = JSON.parse(localStorage.getItem("flights")) || [];
 
     // Функция для генерации ключа
@@ -7,27 +8,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         return `${flight.from}-${flight.to}-${flight.date}`;
     }
 
-    flights.forEach((flight, index) => {
-        const block = document.createElement("div");
-        block.className = "flight-block";
+    // Показываем индикатор загрузки
+    loadingIndicator.classList.remove("hidden");
 
-        block.innerHTML = `
-            <div class="flight-route">${flight.from} – ${flight.to}</div>
-            <div class="flight-date">${formatDate(flight.date)}</div>
-            <button class="select-hotel-btn" data-city="${flight.to}">Выбрать отель</button>
-        `;
+    // Инициализация и рендеринг без искусственной задержки
+    await initFlightNumbers();
+    localStorage.setItem("flightNumbersInit", "true");
+    await renderFlights(flights);
 
-        container.appendChild(block);
-
-        if (index < flights.length - 1) {
-            const divider = document.createElement("div");
-            divider.className = "divider";
-            container.appendChild(divider);
-        }
-    });
-
-    const savedSelections = JSON.parse(localStorage.getItem("flightsData")) || {};
-    const flightsList = JSON.parse(localStorage.getItem("flights")) || [];
+    // Скрываем индикатор после рендеринга
+    loadingIndicator.classList.add("hidden");
 
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
     const profileCircle = document.getElementById("profile-circle");
@@ -36,10 +26,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
         profileCircle.textContent = "Профиль";
     }
-
-    await initFlightNumbers();
-    localStorage.setItem("flightNumbersInit", "true");
-    await renderFlights(flightsList, savedSelections);
 
     const saveRouteButton = document.querySelector(".save-route-link");
     if (!saveRouteButton) {
@@ -52,14 +38,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         const flights = JSON.parse(localStorage.getItem("flights")) || [];
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
 
-        const allTimesSelected = flights.every(flight => {
+        const allTimesSelected = flights.every((flight) => {
             const flightId = generateFlightKey(flight);
             return flightsData[`times_${flightId}`]?.selectedIndex !== undefined;
         });
 
         if (allTimesSelected || flights.length === 0) {
             const allCards = document.querySelectorAll(".flight-block");
-            const sendPromises = Array.from(allCards).map(card => sendSingleRoute(card));
+            const sendPromises = Array.from(allCards).map((card) => sendSingleRoute(card));
             await Promise.all(sendPromises);
             window.location.href = "/profile";
         } else {
@@ -69,6 +55,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Обработчик кнопки "Выбрать отель" теперь в renderFlights
     // (оставляем пустым здесь, так как будет вызываться динамически)
+    // Обработчик кнопки "Выбрать отель"
+    const hotelButtons = document.querySelectorAll(".select-hotel-btn");
+    hotelButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const city = button.getAttribute("data-city");
+            const modalTitle = document.getElementById("modalCity");
+            modalTitle.textContent = city;
+
+            const hotelModal = new bootstrap.Modal(document.getElementById("hotelModal"));
+            hotelModal.show();
+
+            const selectHotelButtons = document.querySelectorAll(".select-hotel-option");
+            selectHotelButtons.forEach((btn) => {
+                btn.onclick = () => {
+                    const hotelName = btn.parentElement.querySelector("h6").textContent;
+                    showCustomAlert(`Выбран отель: ${hotelName}`);
+                    hotelModal.hide();
+                };
+            });
+        });
+    });
 
     async function initFlightNumbers() {
         const currentFlightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
@@ -87,31 +94,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function fetchFlightOptions(from, to, date) {
         try {
-            const cleanCity = city => city.split(',')[0].trim();
+            const cleanCity = (city) => city.split(",")[0].trim();
             const params = new URLSearchParams({
                 origin: cleanCity(from),
                 destination: cleanCity(to),
                 departure_at: date,
-                one_way: 'true'
+                one_way: "true",
             });
 
             const response = await fetch(`/api/search_flights?${params}`);
             if (!response.ok) {
                 const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || 'Ошибка загрузки данных');
+                throw new Error(error.error || "Ошибка загрузки данных");
             }
 
             const { data } = await response.json();
 
-            return data.map(flight => {
+            return data.map((flight) => {
                 const departureTime = new Date(flight.departure_at);
                 const arrivalTime = new Date(flight.arrival_at);
 
                 return {
-                    departure: departureTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                    arrival: arrivalTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                    departure: departureTime.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
+                    arrival: arrivalTime.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
                     number: `${flight.airline}${flight.flight_number}`,
-                    price: flight.price
+                    price: flight.price,
                 };
             });
         } catch (error) {
@@ -120,8 +127,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    async function renderFlights(flights, savedData) {
-        container.innerHTML = '';
+    async function renderFlights(flights) {
+        const savedData = JSON.parse(localStorage.getItem("flightsData")) || {};
+        container.innerHTML = ""; // Очищаем только после загрузки
+
+        const fragment = document.createDocumentFragment();
 
         for (let i = 0; i < flights.length; i++) {
             const flight = flights[i];
@@ -153,16 +163,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             `;
 
             renderTimeSlots(flightBlock, flightId, times, savedData);
-            container.appendChild(flightBlock);
+            fragment.appendChild(flightBlock);
 
             if (i < flights.length - 1) {
-                container.appendChild(document.createElement("hr"));
+                fragment.appendChild(document.createElement("hr"));
             }
         }
 
         // Инициализация обработчиков для кнопок "Выбрать отель" после рендера
         const hotelButtons = container.querySelectorAll(".select-hotel-btn");
-        hotelButtons.forEach(button => {
+        hotelButtons.forEach((button) => {
             button.addEventListener("click", () => {
                 const city = button.getAttribute("data-city");
                 const modalTitle = document.getElementById("modalCity");
@@ -171,8 +181,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const hotelModal = new bootstrap.Modal(document.getElementById("hotelModal"));
                 hotelModal.show();
 
-                const selectHotelButtons = document.querySelectorAll(".select-hotel-option"); // Исправлено на select-hotel-option
-                selectHotelButtons.forEach(btn => {
+                const selectHotelButtons = document.querySelectorAll(".select-hotel-option");
+                selectHotelButtons.forEach((btn) => {
                     btn.onclick = () => {
                         const hotelName = btn.parentElement.querySelector("h6").textContent;
                         showCustomAlert(`Выбран отель: ${hotelName}`);
@@ -181,6 +191,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
             });
         });
+
+        container.appendChild(fragment);
     }
 
     function renderTimeSlots(block, flightId, times, savedData) {
@@ -243,7 +255,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function resetSelection(block, flightId) {
         const allSlots = block.querySelectorAll(".time-slot");
 
-        allSlots.forEach(slot => {
+        allSlots.forEach((slot) => {
             slot.classList.remove("selected", "centered", "hidden");
         });
 
@@ -258,7 +270,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function formatDate(dateString) {
-        const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+        const months = [
+            "янв", "фев", "мар", "апр", "мая", "июн",
+            "июл", "авг", "сен", "окт", "ноя", "дек",
+        ];
         const date = new Date(dateString);
         return `${date.getDate()} ${months[date.getMonth()]}`;
     }
@@ -284,12 +299,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function sendSingleRoute(card) {
-    const fromCity = card.querySelector('.city.from-city')?.textContent.trim();
-    const toCity = card.querySelector('.city.to-city')?.textContent.trim();
-    const flightDate = card.querySelector('.flight-date')?.textContent.trim();
-    const time = card.querySelector('.time-slot.selected .time')?.textContent.trim();
-    const flightNumber = card.querySelector('.time-slot.selected .flight-num')?.textContent.trim();
-    const priceStr = card.querySelector('.time-slot.selected .price')?.textContent.trim();
+    const fromCity = card.querySelector(".city.from-city")?.textContent.trim();
+    const toCity = card.querySelector(".city.to-city")?.textContent.trim();
+    const flightDate = card.querySelector(".flight-date")?.textContent.trim();
+    const time = card.querySelector(".time-slot.selected .time")?.textContent.trim();
+    const flightNumber = card.querySelector(".time-slot.selected .flight-num")?.textContent.trim();
+    const priceStr = card.querySelector(".time-slot.selected .price")?.textContent.trim();
 
     console.log("DEBUG: ", { fromCity, toCity, flightDate, time, flightNumber, priceStr });
 
@@ -298,8 +313,8 @@ function sendSingleRoute(card) {
         return Promise.resolve();
     }
 
-    const price = parseInt(priceStr.replace(/[^\d]/g, ''), 10);
-    const [departureAt, arrivalAt] = time.split('-');
+    const price = parseInt(priceStr.replace(/[^\d]/g, ""), 10);
+    const [departureAt, arrivalAt] = time.split("-");
 
     const payload = {
         origin: fromCity,
@@ -307,21 +322,24 @@ function sendSingleRoute(card) {
         departure_at: departureAt,
         arrival_at: arrivalAt,
         flight_number: flightNumber,
-        price: price
+        price: price,
     };
 
-    return fetch('/add_route', {
-        method: 'POST',
+    return fetch("/add_route", {
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload)
-    }).then(response => {
-        if (!response.ok) throw new Error("Ошибка при отправке");
-        return response.json();
-    }).then(data => {
-        console.log("Ответ сервера:", data);
-    }).catch(error => {
-        console.error("Ошибка:", error);
-    });
+        body: JSON.stringify(payload),
+    })
+        .then((response) => {
+            if (!response.ok) throw new Error("Ошибка при отправке");
+            return response.json();
+        })
+        .then((data) => {
+            console.log("Ответ сервера:", data);
+        })
+        .catch((error) => {
+            console.error("Ошибка:", error);
+        });
 }

@@ -33,6 +33,9 @@ body {
     max-height: 80vh;
     overflow-y: auto;
 }
+.container label {
+    color: black;
+}
 
 .flight-card {
     background: #f8f9fa;

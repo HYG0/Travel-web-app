@@ -22,6 +22,36 @@ document.addEventListener("DOMContentLoaded", () => {
     // Данные пользователя
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
 
+    // Функция для отображения кастомного алерта
+    function showCustomAlert(message) {
+        let alertBox = document.getElementById("custom-alert");
+        let messageBox = document.getElementById("custom-alert-message");
+
+        // Если элементы уведомления ещё не созданы, создаём их динамически
+        if (!alertBox || !messageBox) {
+            const alertContainer = document.createElement('div');
+            alertContainer.id = "custom-alert";
+            alertContainer.classList.add('hidden');
+            alertContainer.innerHTML = `
+                <span id="custom-alert-message"></span>
+            `;
+            document.body.appendChild(alertContainer);
+
+            // Обновляем ссылки на элементы
+            alertBox = document.getElementById("custom-alert");
+            messageBox = document.getElementById("custom-alert-message");
+        }
+
+        // Устанавливаем сообщение и показываем алерт
+        messageBox.textContent = message;
+        alertBox.classList.remove("hidden");
+        setTimeout(() => alertBox.classList.add("show"), 10); // Небольшая задержка для срабатывания анимации
+        setTimeout(() => {
+            alertBox.classList.remove("show");
+            setTimeout(() => alertBox.classList.add("hidden"), 300);
+        }, 3000); // Скрываем через 3 секунды
+    }
+
     // Инициализация профиля
     function initProfile() {
         if (userData.avatar) {
@@ -180,7 +210,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter(flight => flight !== null);
 
         if (selectedFlights.length === 0) {
-            alert("Нет рейсов для скачивания!");
+            // Показываем кастомный алерт
+            showCustomAlert("Нет рейсов для скачивания");
             return;
         }
 
@@ -357,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!file) return;
 
         if (!file.type.match("image.*")) {
-            alert("Пожалуйста, выберите изображение");
+            showCustomAlert("Пожалуйста, выберите изображение");
             return;
         }
 
