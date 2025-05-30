@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Create-Travel</title>
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 </head>
 <body>
 
@@ -19,13 +18,16 @@
                 <span></span>
             </button>
             <span class="navbar-brand mx-auto">Create & Travel</span>
+            <a href="/profile" class="profile-link ms-auto"> 
+                <div class="profile-circle" id="profile-circle"></div>
+            </a>
         </nav>
 
         <!-- Меню -->
-        <div class="menu-items mt-5" id="menu">
-            <a href="#">MENU</a>
-            <a href="#">ABOUT</a>
-            <a href="#">CONTACT</a>
+        <div class="menu-items" id="menu">
+            <a href="/profile">МОЙ ПРОФИЛЬ</a>
+            <a href="/entry">МАРШРУТ</a>
+            <a href="/about">О ПРОЕКТЕ</a>
         </div>
     </header>
 
@@ -54,34 +56,11 @@
                 </div>
             </div>
             
-            <button class="carousel-control-prev" type="button" data-bs-target="#entry-page-carousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon"></span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#entry-page-carousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon"></span>
-            </button>
         </div>
     </div>
 
     <!-- Форма создания плана -->
-    <section class="container my-4">
-        <h2 class="text-center">Спланируй свой путешествие</h2>
-        <form>
-            <div class="mb-3">
-                <label for="destination" class="form-label">Начало путешествия</label>
-                <input type="text" class="form-control" id="destination" placeholder="Откуда">
-            </div>
-            <div class="mb-3">
-                <label for="start-date" class="form-label">Дата начала</label>
-                <input type="date" class="form-control" id="start-date">
-            </div>
-            <div class="mb-3">
-                <label for="end-date" class="form-label">Дата окончания</label>
-                <input type="date" class="form-control" id="end-date">
-            </div>
-            <button type="submit" class="btn btn-cstm-lite-green w-100">Создать план</button>
-        </form>
-    </section>
+    
 
     <!-- Раздел с блоками-статьями -->
     <section class="container my-5">
@@ -93,7 +72,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Лучшие места для отдыха в 2025</h5>
                         <p class="card-text">Обзор самых интересных направлений для отдыха в этом году.</p>
-                        <a href="#" class="btn btn-primary">Читать далее</a>
+                        <a href="https://www.aviasales.ru/psgr/article/kuda-poekhat-v-2025-godu" class="btn btn-primary">Читать далее</a>
                     </div>
                 </div>
             </div>
@@ -103,7 +82,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Как собрать чемодан</h5>
                         <p class="card-text">Полезные советы по упаковке вещей для путешествий.</p>
-                        <a href="#" class="btn btn-primary">Читать далее</a>
+                        <a href="https://ru.skyscanner.com/news/kak-pravilno-upakovat-veshchi-dlia-poezdki" class="btn btn-primary">Читать далее</a>
                     </div>
                 </div>
             </div>
@@ -113,7 +92,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Бюджетные путешествия</h5>
                         <p class="card-text">Как путешествовать дешево и комфортно.</p>
-                        <a href="#" class="btn btn-primary">Читать далее</a>
+                        <a href="https://viasun.ru/blog/deshevye-strany-dlya-puteshestviya/" class="btn btn-primary">Читать далее</a>
                     </div>
                 </div>
             </div>
@@ -126,18 +105,56 @@
     </footer>
 
     <!-- Подключаем JS в конце body -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Меню
-        document.getElementById("menu-toggle").addEventListener("click", function() {
-            document.getElementById("menu").classList.toggle("active");
-        });
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Меню и элементы
+    const menu = document.getElementById("menu");
+    const menuToggle = document.getElementById("menu-toggle");
+    const mainContent = document.querySelector('.container.col.text-cyan.text-center');
+    const carousel = document.getElementById('entry-page-carousel');
+    let isCarouselAnimating = false;
 
-        // Инициализация карусели
-        var myCarousel = new bootstrap.Carousel(document.getElementById('entry-page-carousel'), {
-            interval: 3000,
-            wrap: true
-        });
-    </script>
+    // Закрыто по умолчанию
+    menu.classList.remove("active");
+
+    // Отслеживаем анимацию карусели (оставляем для других возможных нужд)
+    carousel.addEventListener('slide.bs.carousel', function() {
+        isCarouselAnimating = true;
+    });
+    
+    carousel.addEventListener('slid.bs.carousel', function() {
+        isCarouselAnimating = false;
+    });
+
+    // Обработчик клика по меню
+    menuToggle.addEventListener("click", function() {
+        const isAtTop = window.pageYOffset < 50;
+        menu.classList.toggle("active");
+        
+        // Сдвигаем контент только если открыли меню вверху страницы
+        if (isAtTop) {
+            mainContent.classList.toggle("content-shifted", menu.classList.contains("active"));
+        } else {
+            mainContent.classList.remove("content-shifted");
+        }
+    });
+
+    // Карусель (без изменений)
+    var myCarousel = new bootstrap.Carousel(document.getElementById('entry-page-carousel'), {
+        interval: 3000,
+        wrap: true
+    });
+
+// Загрузка аватара в кружок профиля
+// Загрузка аватара в профиль
+const userData = JSON.parse(localStorage.getItem("userData")) || {};
+const profileCircle = document.getElementById("profile-circle");
+if (userData.avatar) {
+    profileCircle.style.backgroundImage = `url(${userData.avatar})`;
+    profileCircle.textContent = "";
+} else {
+    profileCircle.textContent = "Профиль";
+}
+</script>
 </body>
 </html>

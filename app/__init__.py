@@ -11,6 +11,9 @@ migrate = Migrate()
 def create_app():
     app = Flask(__name__)
 
+    # Ключ для session
+    app.secret_key = 'Egor2018#$21&$@19'
+
     # Конфигурация
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or \
                                             'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)),

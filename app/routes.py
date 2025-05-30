@@ -1,9 +1,10 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
-import requests
 from . import db
+from .fly_routes import configure_routes
 from .models import Users
+from . import api
 
 
 def validate_password(password):
@@ -74,6 +75,8 @@ def register_routes(app):
             db.session.add(new_user)
             db.session.commit()
 
+            session['user_id'] = new_user.id
+
             return jsonify({
                 'message': 'Регистрация успешна',
                 'user': {'name': new_user.username, 'email': new_user.email}
@@ -93,6 +96,8 @@ def register_routes(app):
 
         if not user or not check_password_hash(user.password, password):
             return jsonify({'error': 'Неверные учетные данные'}), 401
+        
+        session['user_id'] = user.id
 
         return jsonify({'message': f'Добро пожаловать, {user.username}!'}), 200
 
@@ -107,70 +112,48 @@ def register_routes(app):
 
     @app.route('/entry')
     def city_form():
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect(url_for('login'))
+        
+        user = Users.query.get(user_id)
+        if not user:
+            return redirect(url_for('login'))
+        
         return render_template('city_form.html')
 
     @app.route('/routes')
     def routes():
         return render_template('fly_routes.html')
+
+    @app.route('/about')
+    def about():
+        return render_template('about.html')
     
-    @app.route('/search_cities')
-    def search_cities():
-        query = request.args.get('q')
-        if not query:
-            return jsonify([])
+    @app.route('/profile')
+    def profile():
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect(url_for('login'))
+        
+        user = Users.query.get(user_id)
+        if not user:
+            return redirect(url_for('login'))
+        
+        return render_template('profile.html', user=user)
 
-        response = requests.get(
-            'https://places.aviasales.ru/v2/places.json',
-            params={
-                'term': query,
-                'locale': 'ru',
-                'types[]': 'city'
-            }
-        )
+    @app.route('/logout')
+    def logout():
+        # Очищаем сессию
+        session.clear()
+        # Можно также очистить куки, если нужно
+        # session.pop('user_id', None)
+        #Удаляем куку в браузере
+        response = redirect(url_for('index'))
+        response.delete_cookie('session')
 
-        if response.status_code != 200:
-            return jsonify([])
-        if response.status_code == 429:
-            return "Too mucn requests to API"
+        return redirect(url_for('index'))
 
-        data = response.json()
+    configure_routes(app)
 
-        results = []
-        for item in data:
-            if query.lower() in item.get('name', '').lower():
-                results.append({
-                    "name": item.get("name", ""),
-                    "code": item.get("code", ""),
-                    "country_name": item.get("country_name", "")
-                })
-
-        return jsonify(results)
-
-    @app.route('/register', methods = ['GET', 'POST']) # связывает адрес с функцией
-    def register():
-        form = RegistrationForm() # экземпляр формы регистрации
-        if form.validate_on_submit():
-            # проверка на уже существуюшего пользователя
-            user = User.query.filter_by(username=form.username.data).first() # поиск пользователя с таким же именем в БД
-            if user:
-                flash("Это имя пользователя уже занято.", "danger")
-                return redirect(url_for("register"))
-            user = User.query.filter_by(email=form.email.data).first()
-
-            if user:
-                flash("Этот email уже используется.", "danger")
-                return redirect(url_for("register"))
-            
-
-            # создание нового пользователя
-            new_user = User(username=form.username.data, email=form.email.data)
-            new_user.set_password(form.password.data)
-
-
-            # сохранение в БД
-            db.session.add(new_user)
-            db.session.commit()
-
-            flash("Аккаунт успешно создан! Теперь можно войти.", "success")
-            return redirect(url_for("index")) # перенаправляет юзера на главную страницу
-        return render_template("register.html", form=form)
+    api.basic_search_flights(app)

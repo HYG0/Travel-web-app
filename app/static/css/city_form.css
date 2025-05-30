@@ -33,6 +33,9 @@ body {
     max-height: 80vh;
     overflow-y: auto;
 }
+.container label {
+    color: black;
+}
 
 .flight-card {
     background: #f8f9fa;
@@ -89,7 +92,6 @@ body {
     box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-
 .suggestions li {
     padding: 8px;
     cursor: pointer;
@@ -132,7 +134,6 @@ body {
     color: white;
 }
 
-
 /* Стиль для кнопки "Далее" */
 .next-btn {
     width: 100%;
@@ -154,5 +155,38 @@ body {
     box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* Стиль для новой кнопки "Назад" */
+.back-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px; /* Добавлен отступ снизу для разделения с другими кнопками */
+}
 
+.back-btn:hover {
+    background: linear-gradient(45deg, #0056b3, #004494);
+    transform: scale(1.05);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
 
+.hidden {
+    display: none;
+}
+
+.show {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

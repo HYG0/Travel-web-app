@@ -8,3 +8,4 @@ app/static/css/main.css
 *.pyc
 *min.js
 .idea/
+*.db
