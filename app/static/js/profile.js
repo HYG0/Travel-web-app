@@ -47,7 +47,53 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Инициализация профиля
-    function initProfile() {
+    async function initProfile() {
+        try {
+            // Получение данных с сервера
+            const response = await fetch('/data/get_data');
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            const data = await response.json();
+
+            // Обработка данных
+            const flights = [];
+            const flightsData = {};
+
+            for (const routeKey in data) {
+                const route = data[routeKey];
+                const from = route.origin;
+                const to = route.destination;
+                // Извлечение даты из datetime
+                const datetime = new Date(route.datetime);
+                const date = datetime.toISOString().split('T')[0]; // Например, "2025-05-30"
+                const flight = { from, to, date };
+                flights.push(flight);
+
+                const timesKey = `times_${from}-${to}-${date}`;
+                const timeData = {
+                    departure: route.departure_at,
+                    arrival: route.return_at,
+                    price: route.price,
+                    currency: 'RUB', // Предполагаем RUB, так как валюта не указана
+                    number: route.flight_number
+                };
+                flightsData[timesKey] = {
+                    times: [timeData],
+                    selectedIndex: 0,
+                    hotelName: "Не указан" // Информация об отеле отсутствует в данных сервера
+                };
+            }
+
+            // Сохранение в localStorage
+            localStorage.setItem("flights", JSON.stringify(flights));
+            localStorage.setItem("flightsData", JSON.stringify(flightsData));
+        } catch (error) {
+            console.error('Ошибка при загрузке данных:', error);
+            showCustomAlert('Не удалось загрузить данные с сервера');
+        }
+
+        // Инициализация аватара
         if (userData.avatar) {
             avatarLabel.textContent = "";
             avatarLabel.style.backgroundImage = `url(${userData.avatar})`;
@@ -55,6 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
             avatarLabel.textContent = "Ава";
             avatarLabel.style.backgroundImage = "";
         }
+
+        // Отображение рейсов
         renderSelectedFlights();
     }
 

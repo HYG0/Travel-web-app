@@ -1,7 +1,7 @@
 from flask import session, jsonify
 from .models import Users
 
-def wrapper_get_data(app):
+def basic_get_data(app):
     @app.route('/data/get_data', methods=['GET'])
     def get_data():
         user_id = session.get('user_id')
