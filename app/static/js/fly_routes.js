@@ -83,23 +83,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         for (const flight of flights) {
             const flightId = generateFlightKey(flight);
-            if (!currentFlightsData[`times_${flightId}`]) {
-                const options = await fetchFlightOptions(flight.from, flight.to, flight.date);
-                currentFlightsData[`times_${flightId}`] = { times: options, selectedIndex: undefined };
-            }
+            // Всегда перезапрашиваем данные с сервера, если они устарели
+            const options = await fetchFlightOptions(flight.from, flight.to, flight.date, flight.costMin, flight.costMax, flight.currency);
+            currentFlightsData[`times_${flightId}`] = { times: options, selectedIndex: undefined };
         }
 
         localStorage.setItem("flightsData", JSON.stringify(currentFlightsData));
     }
 
-    async function fetchFlightOptions(from, to, date) {
+    async function fetchFlightOptions(from, to, date, costMin, costMax, currency) {
         try {
             const cleanCity = (city) => city.split(",")[0].trim();
             const params = new URLSearchParams({
                 origin: cleanCity(from),
                 destination: cleanCity(to),
                 departure_at: date,
-                one_way: "true",
+                currency: currency,
+                cost_min: costMin,
+                cost_max: costMax,
+                one_way: 'false'
             });
 
             const response = await fetch(`/api/search_flights?${params}`);
@@ -110,17 +112,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const { data } = await response.json();
 
-            return data.map((flight) => {
-                const departureTime = new Date(flight.departure_at);
-                const arrivalTime = new Date(flight.arrival_at);
+            // Усиленная фильтрация на клиенте
+            return data
+                .filter(flight => {
+                    const price = parseFloat(flight.price) || 0;
+                    return costMin <= price && price <= costMax;
+                })
+                .map(flight => {
+                    const departureTime = new Date(flight.departure_at);
+                    const arrivalTime = new Date(flight.arrival_at);
 
-                return {
-                    departure: departureTime.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
-                    arrival: arrivalTime.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
-                    number: `${flight.airline}${flight.flight_number}`,
-                    price: flight.price,
-                };
-            });
+                    return {
+                        departure: departureTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                        arrival: arrivalTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                        number: `${flight.airline}${flight.flight_number}`,
+                        price: flight.price,
+                        currency: flight.currency // Добавляем валюту из API
+                    };
+                });
         } catch (error) {
             console.error("Ошибка получения рейсов:", error);
             return [];
@@ -137,13 +146,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             const flight = flights[i];
             const flightId = generateFlightKey(flight);
 
-            if (!savedData[`times_${flightId}`]) {
-                const times = await fetchFlightOptions(flight.from, flight.to, flight.date);
-                savedData[`times_${flightId}`] = { times: times, selectedIndex: undefined };
-                localStorage.setItem("flightsData", JSON.stringify(savedData));
-            }
-
-            const times = savedData[`times_${flightId}`].times;
+            // Всегда перезапрашиваем данные с сервера
+            const times = await fetchFlightOptions(flight.from, flight.to, flight.date, flight.costMin, flight.costMax, flight.currency);
+            savedData[`times_${flightId}`] = { times: times, selectedIndex: undefined };
+            localStorage.setItem("flightsData", JSON.stringify(savedData));
 
             const flightBlock = document.createElement("div");
             flightBlock.className = "flight-block";
@@ -162,7 +168,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <button class="select-hotel-btn" data-city="${flight.to}">Выбрать отель</button>
             `;
 
-            renderTimeSlots(flightBlock, flightId, times, savedData);
+            renderTimeSlots(flightBlock, flightId, times, savedData, flight.currency);
             fragment.appendChild(flightBlock);
 
             if (i < flights.length - 1) {
@@ -195,8 +201,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         container.appendChild(fragment);
     }
 
-    function renderTimeSlots(block, flightId, times, savedData) {
+    function renderTimeSlots(block, flightId, times, savedData, currency) {
         const slotsContainer = block.querySelector(".time-slots");
+
+        // Маппинг валют и их символов
+        const currencySymbols = {
+            'RUB': '₽',
+            'USD': '$',
+            'EUR': '€'
+        };
+
+        // Получаем символ валюты, если он есть, иначе используем рубль по умолчанию
+        const currencySymbol = currencySymbols[currency] || '₽';
 
         times.forEach((time, index) => {
             const slot = document.createElement("div");
@@ -207,7 +223,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             slot.innerHTML = `
                 <span class="time">${time.departure}-${time.arrival}</span>
                 <span class="flight-num">${time.number}</span>
-                <span class="price">${time.price}₽</span>
+                <span class="price">${time.price}${currencySymbol}</span>
             `;
             slot.addEventListener("click", () => {
                 if (!slot.classList.contains("selected")) {
