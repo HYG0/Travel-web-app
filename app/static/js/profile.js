@@ -294,7 +294,14 @@ document.addEventListener("DOMContentLoaded", () => {
     flightsSection.innerHTML = `<h2>Все рейсы</h2>`;
     flightsSectionContainer.appendChild(flightsSection);
     await renderToPDF(flightsSectionContainer);
-
+    
+    function formatDateForPDF(dateStr) {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // месяцы от 0 до 11
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+}
     for (const flight of selectedFlights) {
         const ticketContainer = createTempContainer();
         const ticket = document.createElement("div");
@@ -304,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ticket.innerHTML = `
             <div class="ticket-header">
                 <span class="ticket-number">${flight.number || "Неизвестно"}</span>
-                <span class="ticket-date">${flight.date}</span>
+                <span class="ticket-date">${formatDateForPDF(flight.date)}</span>
             </div>
             <div class="ticket-airline">${airline}</div>
             <div class="ticket-route">

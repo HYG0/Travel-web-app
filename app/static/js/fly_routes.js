@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Получаем символ валюты, если он есть, иначе используем рубль по умолчанию
         const currencySymbol = currencySymbols[currency] || '₽';
 
-        times.forEach((time, index) => {
+        times.slice(0, 6).forEach((time, index) => {
             const slot = document.createElement("div");
             slot.className = "time-slot";
             if (savedData[`times_${flightId}`]?.selectedIndex === index) {
