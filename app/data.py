@@ -13,4 +13,10 @@ def basic_get_data(app):
             return jsonify({'error': 'Пользователь не найден'}), 404
 
         routes = user.routes
+        # Убеждаемся, что все поля присутствуют, добавляем значения по умолчанию если их нет
+        for route_id, route in routes.items():
+            route['currency'] = route.get('currency', 'RUB')
+            route['hotelName'] = route.get('hotelName', 'Не указан')
+            route['flightDate'] = route.get('flightDate', 'Неизвестно')
+
         return jsonify(routes), 200

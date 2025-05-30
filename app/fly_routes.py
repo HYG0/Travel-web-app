@@ -3,7 +3,6 @@ from datetime import datetime
 from . import db
 from .models import Users
 
-
 def configure_routes(app):
     @app.route('/add_route', methods=['POST'])
     def add_route():
@@ -32,7 +31,9 @@ def configure_routes(app):
                 'departure_at': data.get('departure_at'),
                 'return_at': data.get('return_at'),
                 'price': data.get('price'),
-                'datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                'currency': data.get('currency', 'RUB'),  # Сохраняем валюту, по умолчанию RUB
+                'hotelName': data.get('hotelName', 'Не указан'),  # Сохраняем отель
+                'flightDate': data.get('flightDate')  # Сохраняем дату полета
             }
             # Генерируем ID рейса
             route_number = len(user.routes) + 1 if user.routes else 1
@@ -50,7 +51,7 @@ def configure_routes(app):
             db.session.rollback()
             return jsonify({'message': str(e)}), 500
 
-
+    # Остальные маршруты остаются без изменений
     @app.route('/get_routes', methods=['GET'])
     def get_routes():
         user_id = session.get('user_id')
@@ -64,7 +65,6 @@ def configure_routes(app):
         return jsonify({
             'routes': user.routes if user.routes else {}
         }), 200
-
 
     @app.route('/remove_route/<string:route_id>', methods=['DELETE'])
     def remove_route(route_id):
