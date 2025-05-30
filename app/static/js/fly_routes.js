@@ -107,6 +107,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
+            // Проверяем наличие отелей с рейтингами 3, 4, 5 звёзд
+            const requiredRatings = [3, 4, 5];
+            const availableRatings = [...new Set(hotels.map(hotel => hotel.stars))];
+            const missingRatings = requiredRatings.filter(rating => !availableRatings.includes(rating));
+
+            if (missingRatings.length > 0) {
+                showCustomAlert(`Не удалось найти отели для всех запрошенных рейтингов. Отсутствуют: [${missingRatings.join(', ')}]`);
+            }
+
             // Отображаем отели в модальном окне
             hotelOptions.innerHTML = '';
             hotels.forEach((hotel) => {
@@ -141,10 +150,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     showCustomAlert(`Выбран отель: ${hotelName}`);
 
+                    // Создаём контейнер для отеля и кнопки отмены
+                    const hotelSection = document.createElement("div");
+                    hotelSection.className = "hotel-section";
+
                     // Добавляем отель в блок рейса
                     const hotelSlot = document.createElement("div");
                     hotelSlot.className = "hotel-slot selected centered";
-                    hotelSlot.style.backgroundColor = "#1E90FF"; // Синий цвет, как у билета
+                    hotelSlot.style.backgroundColor = "#1E90FF";
                     hotelSlot.innerHTML = `
                         <span class="hotel-name">${hotelName}</span>
                         <span class="hotel-rating">${hotelStars}</span>
@@ -153,23 +166,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     // Удаляем предыдущий отель, если он был
                     if (existingHotelSlot) {
-                        existingHotelSlot.remove();
+                        existingHotelSlot.closest(".hotel-section")?.remove();
                     }
 
                     // Добавляем кнопку "Отменить выбор отеля"
                     const cancelHotelBtn = document.createElement("div");
                     cancelHotelBtn.className = "cancel-hotel-btn";
                     cancelHotelBtn.textContent = "Отменить выбор отеля";
-                    cancelHotelBtn.style.color = "#1E90FF"; // Синий текст
+                    cancelHotelBtn.style.color = "#1E90FF";
                     cancelHotelBtn.addEventListener("click", () => {
-                        hotelSlot.remove();
-                        cancelHotelBtn.remove();
+                        hotelSection.remove();
                         const selectHotelBtn = flightBlock.querySelector(".select-hotel-btn");
                         if (selectHotelBtn) selectHotelBtn.style.display = "block";
                     });
 
-                    flightBlock.appendChild(hotelSlot);
-                    flightBlock.appendChild(cancelHotelBtn);
+                    // Добавляем элементы в контейнер hotel-section
+                    hotelSection.appendChild(hotelSlot);
+                    hotelSection.appendChild(cancelHotelBtn);
+
+                    // Добавляем контейнер в flightBlock
+                    flightBlock.appendChild(hotelSection);
 
                     // Убираем кнопку "Выбрать отель"
                     const selectHotelBtn = flightBlock.querySelector(".select-hotel-btn");
@@ -265,13 +281,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 currency: currency
             });
 
-            const response = await fetch(`/api/search_hotels?${params}`);
+            const response = await fetch(`/api/search_hotels?${params}`, { timeout: 10000 });
             if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || "Ошибка загрузки отелей");
+                throw new Error("Не удалось установить соединение с сервером. Проверьте интернет и попробуйте снова.");
             }
 
             const data = await response.json();
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error("Не удалось найти отели для данного запроса.");
+            }
             return data;
         } catch (error) {
             console.error("Fetch Hotels Error:", error);
