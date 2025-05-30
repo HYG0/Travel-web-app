@@ -87,7 +87,7 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid var(--border);
     position: relative;
-    padding-top: 35px; /* Увеличено для размещения кнопки */
+    padding-top: 35px;
 }
 
 .flight-header {
@@ -95,20 +95,20 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
-    flex-wrap: wrap; /* Разрешаем перенос элементов при нехватке места */
+    flex-wrap: wrap;
 }
 
 .flight-number {
     font-weight: 600;
     color: var(--primary);
-    flex: 1 1 auto; /* Занимает доступное пространство */
+    flex: 1 1 auto;
 }
 
 .flight-date {
     color: var(--secondary);
     font-size: 0.9rem;
-    flex: 0 0 auto; /* Не растягивается */
-    margin-left: 10px; /* Отступ от номера рейса */
+    flex: 0 0 auto;
+    margin-left: 10px;
 }
 
 .flight-route {
@@ -143,6 +143,14 @@ body {
     color: #28a745;
     font-weight: 500;
     padding-left: 10px;
+}
+
+.flight-hotel {
+    text-align: left;
+    font-size: 0.9rem;
+    color: var(--dark);
+    margin-bottom: 10px;
+    font-weight: 500;
 }
 
 .empty-message {
@@ -447,6 +455,15 @@ body {
     line-height: 1.2;
 }
 
+.ticket-hotel {
+    text-align: center;
+    font-size: 0.5rem;
+    color: #000000;
+    margin-bottom: 2px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
 .ticket-route {
     display: flex;
     align-items: center;
@@ -479,6 +496,15 @@ body {
 }
 
 .ticket-duration {
+    text-align: center;
+    font-size: 0.5rem;
+    color: #000000;
+    margin-bottom: 2px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.ticket-price {
     text-align: center;
     font-size: 0.5rem;
     color: #000000;
@@ -568,17 +594,17 @@ body {
         align-items: flex-start;
     }
     .flight-date {
-        margin-left: 5px; /* Уменьшенный отступ для компактности */
-        white-space: nowrap; /* Предотвращаем перенос строки */
+        margin-left: 5px;
+        white-space: nowrap;
     }
     .remove-flight-btn {
         position: absolute;
         top: 5px;
         right: 5px;
-        margin: 0; /* Убираем лишние отступы */
+        margin: 0;
     }
     .flight-card {
-        padding-top: 40px; /* Дополнительное место для кнопки */
+        padding-top: 40px;
     }
 }
 
@@ -591,22 +617,22 @@ body {
     font-size: 16px;
     color: #ff4d4f;
     cursor: pointer;
-    padding: 2px; /* Небольшой внутренний отступ для кнопки */
+    padding: 2px;
 }
 
 /* Стили для кастомного алерта */
 #custom-alert {
     position: fixed;
-    top: -60px; /* Начальная позиция за пределами экрана */
+    top: -60px;
     left: 0;
     right: 0;
-    background-color: #dc3545; /* Красный фон */
+    background-color: #dc3545;
     color: white;
     border-radius: 10px;
     padding: 10px 20px;
     width: 90%;
     height: 5%;
-    max-width: 300px; /* Уменьшенная длина */
+    max-width: 300px;
     margin: 0 auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 2000;
@@ -618,7 +644,7 @@ body {
 }
 
 #custom-alert.show {
-    top: 20px; /* Позиция ниже при появлении */
+    top: 20px;
 }
 
 #custom-alert.hidden {
