@@ -64,7 +64,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         renderSelectedFlights();
     }
-
+    // Добавляем маппинг символов валюты в начало файла
+    const currencySymbols = {
+        'RUB': '₽',
+        'USD': '$',
+        'EUR': '€'
+    };
     // Отображение выбранных рейсов
     function renderSelectedFlights() {
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
@@ -85,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return {
                         ...flight,
                         ...timeData,
-                        price: timeData.price ? `${timeData.price}₽` : "Неизвестно",
+                        price: timeData.price ? `${timeData.price}${currencySymbols[timeData.currency] || '₽'}` : "Неизвестно",
                         originalIndex: index
                     };
                 }
