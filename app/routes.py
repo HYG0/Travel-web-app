@@ -5,6 +5,7 @@ from . import db
 from .fly_routes import configure_routes
 from .models import Users
 from . import api
+from . import hotels
 
 
 def validate_password(password):
@@ -157,3 +158,4 @@ def register_routes(app):
     configure_routes(app)
 
     api.basic_search_flights(app)
+    hotels.basic_search_hotels(app)
