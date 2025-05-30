@@ -476,13 +476,13 @@ function sendSingleRoute(card) {
     }
 
     const price = parseInt(priceStr.replace(/[^\d]/g, ""), 10);
-    const [departureAt, arrivalAt] = time.split("-");
+    const [departureAt, returnAt] = time.split("-");
 
     const payload = {
         origin: fromCity,
         destination: toCity,
         departure_at: departureAt,
-        arrival_at: arrivalAt,
+        return_at: returnAt,
         flight_number: flightNumber,
         price: price,
     };
