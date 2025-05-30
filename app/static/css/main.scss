@@ -178,6 +178,15 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
     margin-bottom: 20px;
     border: none;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    max-width: 328px; /* Синхронизация с максимальной шириной карусели */
+    margin-left: auto;
+    margin-right: auto; /* Центрирование карточек */
+}
+.card-img-top {
+    width: 100%; /* Ширина равна ширине карточки */
+    height: 200px; /* Фиксированная высота для изображения */
+    object-fit: cover; /* Масштабирование изображения с сохранением пропорций */
+    border-radius: 15px 15px 0 0; /* Закругленные углы сверху */
 }
 
 /* Подвал */
