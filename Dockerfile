@@ -20,6 +20,6 @@ COPY . .
 RUN npm run build
 
 # Точка входа в приложение
-ENV FLASK_APP=run.py
+ENV FLASK_APP=wsgi.py
 
-CMD [ "npm", "run", "dev" ]
+CMD [ "npm", "run", "prod" ]
