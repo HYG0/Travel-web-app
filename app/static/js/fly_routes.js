@@ -1,17 +1,29 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const container = document.getElementById("flight-summary");
     const loadingIndicator = container.querySelector(".loading");
-    const flights = JSON.parse(localStorage.getItem("flights")) || [];
+    let flights = JSON.parse(localStorage.getItem("flights")) || [];
 
-    // Функция для генерации ключа
-    function generateFlightKey(flight) {
-        return `${flight.from}-${flight.to}-${flight.date}`;
+    // Отладка: проверяем, что в localStorage есть данные
+    console.log("Flights from localStorage:", flights);
+
+    // Если рейсов нет, добавляем тестовый рейс для отладки
+    if (!flights || flights.length === 0) {
+        flights = [{
+            from: "Москва, Россия",
+            to: "Екатеринбург, Россия",
+            date: "2025-05-30",
+            costMin: 0,
+            costMax: Infinity,
+            currency: "RUB"
+        }];
+        localStorage.setItem("flights", JSON.stringify(flights));
+        console.log("Added test flight:", flights);
     }
 
     // Показываем индикатор загрузки
     loadingIndicator.classList.remove("hidden");
 
-    // Инициализация и рендеринг без искусственной задержки
+    // Инициализация и рендеринг рейсов
     await initFlightNumbers();
     localStorage.setItem("flightNumbersInit", "true");
     await renderFlights(flights);
@@ -19,6 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Скрываем индикатор после рендеринга
     loadingIndicator.classList.add("hidden");
 
+    // Настраиваем профиль пользователя
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
     const profileCircle = document.getElementById("profile-circle");
     if (userData.avatar) {
@@ -27,13 +40,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         profileCircle.textContent = "Профиль";
     }
 
+    // Обработчик кнопки сохранения маршрута
     const saveRouteButton = document.querySelector(".save-route-link");
     if (!saveRouteButton) {
         console.error("Ошибка: кнопка сохранения маршрута не найдена в DOM!");
         return;
     }
 
-    // Обработчик кнопки сохранения маршрута
     saveRouteButton.addEventListener("click", async () => {
         const flights = JSON.parse(localStorage.getItem("flights")) || [];
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
@@ -53,37 +66,142 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Обработчик кнопки "Выбрать отель" теперь в renderFlights
-    // (оставляем пустым здесь, так как будет вызываться динамически)
-    // Обработчик кнопки "Выбрать отель"
-    const hotelButtons = document.querySelectorAll(".select-hotel-btn");
-    hotelButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-            const city = button.getAttribute("data-city");
+    // Делегирование событий для кнопки "Выбрать отель"
+    document.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("select-hotel-btn")) {
+            console.log("Hotel button clicked!");
+            const city = e.target.getAttribute("data-city");
+            const checkInDate = e.target.getAttribute("data-check-in-date");
+            const currency = e.target.getAttribute("data-currency");
+
+            // Устанавливаем заголовок модального окна
             const modalTitle = document.getElementById("modalCity");
+            if (!modalTitle) {
+                console.error("Modal title element not found!");
+                return;
+            }
             modalTitle.textContent = city;
 
-            const hotelModal = new bootstrap.Modal(document.getElementById("hotelModal"));
+            // Показываем модальное окно
+            const hotelModalElement = document.getElementById("hotelModal");
+            if (!hotelModalElement) {
+                console.error("Hotel modal element not found!");
+                return;
+            }
+            const hotelModal = new bootstrap.Modal(hotelModalElement);
+            const hotelOptions = document.getElementById("hotelOptions");
+            if (!hotelOptions) {
+                console.error("Hotel options element not found!");
+                return;
+            }
+            hotelOptions.innerHTML = '<p class="text-center">Загрузка отелей...</p>';
+
             hotelModal.show();
 
-            const selectHotelButtons = document.querySelectorAll(".select-hotel-option");
-            selectHotelButtons.forEach((btn) => {
-                btn.onclick = () => {
-                    const hotelName = btn.parentElement.querySelector("h6").textContent;
-                    showCustomAlert(`Выбран отель: ${hotelName}`);
-                    hotelModal.hide();
-                };
+            // Запрашиваем отели
+            const hotels = await fetchHotels(city, checkInDate, '', currency);
+            console.log("Hotels fetched:", hotels);
+
+            if (hotels.error || !Array.isArray(hotels)) {
+                hotelOptions.innerHTML = `<p class="text-danger text-center">${hotels.error || 'Не удалось загрузить отели'}</p>`;
+                return;
+            }
+
+            // Отображаем отели в модальном окне
+            hotelOptions.innerHTML = '';
+            hotels.forEach((hotel) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.innerHTML = `
+                    <div class="hotel-rating">${'★'.repeat(hotel.stars)}${'☆'.repeat(5 - hotel.stars)}</div>
+                    <h6><i class="fas fa-hotel hotel-icon"></i> ${hotel.name}</h6>
+                    <p>Цена: <strong>${Math.ceil(hotel.price_per_night)} ${hotel.currency}/ночь</strong></p>
+                    <button class="btn btn-primary btn-sm select-hotel-option" data-hotel-id="${hotel.hotel_id}">Выбрать этот отель</button>
+                `;
+                hotelOptions.appendChild(li);
             });
-        });
+
+            // Обработчик выбора отеля
+            const selectHotelButtons = hotelOptions.querySelectorAll(".select-hotel-option");
+            selectHotelButtons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const flightBlock = e.target.closest(".flight-block");
+                    const existingHotelSlot = flightBlock.querySelector(".hotel-slot");
+
+                    // Проверяем, выбран ли уже отель
+                    if (existingHotelSlot) {
+                        showCustomAlert("Отель уже выбран.", "danger");
+                        hotelModal.hide();
+                        return;
+                    }
+
+                    const hotelName = btn.parentElement.querySelector("h6").textContent.replace(/<i[^>]*>.*<\/i>/g, '').trim();
+                    const hotelStars = btn.parentElement.querySelector(".hotel-rating").textContent;
+                    const hotelPrice = btn.parentElement.querySelector("p strong").textContent;
+
+                    showCustomAlert(`Выбран отель: ${hotelName}`);
+
+                    // Добавляем отель в блок рейса
+                    const hotelSlot = document.createElement("div");
+                    hotelSlot.className = "hotel-slot selected centered";
+                    hotelSlot.style.backgroundColor = "#1E90FF"; // Синий цвет, как у билета
+                    hotelSlot.innerHTML = `
+                        <span class="hotel-name">${hotelName}</span>
+                        <span class="hotel-rating">${hotelStars}</span>
+                        <span class="hotel-price">${hotelPrice}</span>
+                    `;
+
+                    // Удаляем предыдущий отель, если он был
+                    if (existingHotelSlot) {
+                        existingHotelSlot.remove();
+                    }
+
+                    // Добавляем кнопку "Отменить выбор отеля"
+                    const cancelHotelBtn = document.createElement("div");
+                    cancelHotelBtn.className = "cancel-hotel-btn";
+                    cancelHotelBtn.textContent = "Отменить выбор отеля";
+                    cancelHotelBtn.style.color = "#1E90FF"; // Синий текст
+                    cancelHotelBtn.addEventListener("click", () => {
+                        hotelSlot.remove();
+                        cancelHotelBtn.remove();
+                        const selectHotelBtn = flightBlock.querySelector(".select-hotel-btn");
+                        if (selectHotelBtn) selectHotelBtn.style.display = "block";
+                    });
+
+                    flightBlock.appendChild(hotelSlot);
+                    flightBlock.appendChild(cancelHotelBtn);
+
+                    // Убираем кнопку "Выбрать отель"
+                    const selectHotelBtn = flightBlock.querySelector(".select-hotel-btn");
+                    if (selectHotelBtn) selectHotelBtn.style.display = "none";
+
+                    // Снимаем фокус с текущего элемента перед закрытием модального окна
+                    if (document.activeElement) {
+                        document.activeElement.blur();
+                    }
+
+                    // Закрываем модальное окно
+                    hotelModal.hide();
+
+                    // Переносим фокус на кнопку "Отменить выбор отеля"
+                    cancelHotelBtn.focus();
+                });
+            });
+        }
     });
 
+    // Функция для генерации ключа рейса
+    function generateFlightKey(flight) {
+        return `${flight.from}-${flight.to}-${flight.date}`;
+    }
+
+    // Инициализация данных рейсов
     async function initFlightNumbers() {
         const currentFlightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
         const flights = JSON.parse(localStorage.getItem("flights")) || [];
 
         for (const flight of flights) {
             const flightId = generateFlightKey(flight);
-            // Всегда перезапрашиваем данные с сервера, если они устарели
             const options = await fetchFlightOptions(flight.from, flight.to, flight.date, flight.costMin, flight.costMax, flight.currency);
             currentFlightsData[`times_${flightId}`] = { times: options, selectedIndex: undefined };
         }
@@ -91,6 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         localStorage.setItem("flightsData", JSON.stringify(currentFlightsData));
     }
 
+    // Запрос рейсов с API
     async function fetchFlightOptions(from, to, date, costMin, costMax, currency) {
         try {
             const cleanCity = (city) => city.split(",")[0].trim();
@@ -112,7 +231,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const { data } = await response.json();
 
-            // Усиленная фильтрация на клиенте
             return data
                 .filter(flight => {
                     const price = parseFloat(flight.price) || 0;
@@ -127,7 +245,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         arrival: arrivalTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
                         number: `${flight.airline}${flight.flight_number}`,
                         price: flight.price,
-                        currency: flight.currency // Добавляем валюту из API
+                        currency: flight.currency
                     };
                 });
         } catch (error) {
@@ -136,9 +254,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Запрос отелей с API
+    async function fetchHotels(city, checkInDate, checkOutDate, currency) {
+        try {
+            const cleanCity = (city) => city.split(",")[0].trim();
+            const params = new URLSearchParams({
+                city: cleanCity(city),
+                check_in_date: checkInDate,
+                check_out_date: checkOutDate || '',
+                currency: currency
+            });
+
+            const response = await fetch(`/api/search_hotels?${params}`);
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error || "Ошибка загрузки отелей");
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Fetch Hotels Error:", error);
+            return { error: error.message };
+        }
+    }
+
+    // Рендеринг рейсов
     async function renderFlights(flights) {
         const savedData = JSON.parse(localStorage.getItem("flightsData")) || {};
-        container.innerHTML = ""; // Очищаем только после загрузки
+        container.innerHTML = "";
 
         const fragment = document.createDocumentFragment();
 
@@ -146,7 +290,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const flight = flights[i];
             const flightId = generateFlightKey(flight);
 
-            // Всегда перезапрашиваем данные с сервера
             const times = await fetchFlightOptions(flight.from, flight.to, flight.date, flight.costMin, flight.costMax, flight.currency);
             savedData[`times_${flightId}`] = { times: times, selectedIndex: undefined };
             localStorage.setItem("flightsData", JSON.stringify(savedData));
@@ -165,7 +308,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="time-options">
                     <div class="time-slots"></div>
                 </div>
-                <button class="select-hotel-btn" data-city="${flight.to}">Выбрать отель</button>
+                <button class="select-hotel-btn" 
+                        data-city="${flight.to}" 
+                        data-check-in-date="${flight.date}" 
+                        data-currency="${flight.currency}">Выбрать отель</button>
             `;
 
             renderTimeSlots(flightBlock, flightId, times, savedData, flight.currency);
@@ -176,42 +322,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
-        // Инициализация обработчиков для кнопок "Выбрать отель" после рендера
-        const hotelButtons = container.querySelectorAll(".select-hotel-btn");
-        hotelButtons.forEach((button) => {
-            button.addEventListener("click", () => {
-                const city = button.getAttribute("data-city");
-                const modalTitle = document.getElementById("modalCity");
-                modalTitle.textContent = city;
-
-                const hotelModal = new bootstrap.Modal(document.getElementById("hotelModal"));
-                hotelModal.show();
-
-                const selectHotelButtons = document.querySelectorAll(".select-hotel-option");
-                selectHotelButtons.forEach((btn) => {
-                    btn.onclick = () => {
-                        const hotelName = btn.parentElement.querySelector("h6").textContent;
-                        showCustomAlert(`Выбран отель: ${hotelName}`);
-                        hotelModal.hide();
-                    };
-                });
-            });
-        });
-
         container.appendChild(fragment);
     }
 
+    // Рендеринг временных слотов
     function renderTimeSlots(block, flightId, times, savedData, currency) {
         const slotsContainer = block.querySelector(".time-slots");
 
-        // Маппинг валют и их символов
         const currencySymbols = {
             'RUB': '₽',
             'USD': '$',
             'EUR': '€'
         };
 
-        // Получаем символ валюты, если он есть, иначе используем рубль по умолчанию
         const currencySymbol = currencySymbols[currency] || '₽';
 
         times.forEach((time, index) => {
@@ -238,6 +361,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Выбор временного слота
     function selectTimeSlot(block, flightId, index, silent = false) {
         const allSlots = block.querySelectorAll(".time-slot");
 
@@ -268,6 +392,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Сброс выбора времени
     function resetSelection(block, flightId) {
         const allSlots = block.querySelectorAll(".time-slot");
 
@@ -285,6 +410,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Форматирование даты
     function formatDate(dateString) {
         const months = [
             "янв", "фев", "мар", "апр", "мая", "июн",
@@ -294,7 +420,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return `${date.getDate()} ${months[date.getMonth()]}`;
     }
 
-    function showCustomAlert(message) {
+    // Показ уведомления
+    function showCustomAlert(message, type = "success") {
         const alertBox = document.getElementById("custom-alert");
         const messageBox = document.getElementById("custom-alert-message");
 
@@ -304,8 +431,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         messageBox.textContent = message;
-        alertBox.classList.remove("hidden");
-        alertBox.classList.add("show");
+        alertBox.classList.remove("hidden", "alert-success", "alert-danger");
+        alertBox.classList.add("show", `alert-${type}`);
 
         setTimeout(() => {
             alertBox.classList.remove("show");
@@ -314,6 +441,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
+// Отправка маршрута на сервер
 function sendSingleRoute(card) {
     const fromCity = card.querySelector(".city.from-city")?.textContent.trim();
     const toCity = card.querySelector(".city.to-city")?.textContent.trim();

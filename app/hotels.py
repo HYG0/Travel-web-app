@@ -1,6 +1,8 @@
 from flask import jsonify, request, app
 import requests
 import json
+from datetime import datetime, timedelta
+from .api import get_city_iata  # Импортируем функцию get_city_iata из api.py
 
 def basic_search_hotels(app):
     # Настраиваем Flask для отключения не-ASCII символов
@@ -17,10 +19,29 @@ def basic_search_hotels(app):
         if not city:
             return jsonify({'error': 'City parameter is required'}), 400
 
+        # Преобразуем название города в IATA-код
+        city_iata = get_city_iata(city)
+        if not city_iata:
+            print(f"Could not resolve IATA code for city: {city}")
+            return jsonify({'error': f'Could not resolve IATA code for city: {city}'}), 400
+
+        print(f"Resolved IATA code for {city}: {city_iata}")
+
+        # Если check_out_date не указан, устанавливаем его как check_in_date + 1 день
+        if not check_out_date:
+            try:
+                check_in = datetime.strptime(check_in_date, '%Y-%m-%d')
+                check_out_date = (check_in + timedelta(days=1)).strftime('%Y-%m-%d')
+            except ValueError:
+                print(f"Invalid check_in_date format: {check_in_date}")
+                return jsonify({'error': 'Invalid check_in_date format. Use YYYY-MM-DD'}), 400
+
+        print(f"Parameters: city={city}, IATA={city_iata}, checkIn={check_in_date}, checkOut={check_out_date}, currency={currency}")
+
         api_token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
         base_url = 'https://engine.hotellook.com/api/v2/cache.json'
         params = {
-            'location': city,
+            'location': city_iata if isinstance(city_iata, str) else city_iata[0],  # Используем IATA-код
             'checkIn': check_in_date,
             'checkOut': check_out_date,
             'currency': currency,
@@ -31,9 +52,11 @@ def basic_search_hotels(app):
 
         try:
             # Выполняем запрос к API
+            print(f"Sending request to Hotellook API with params: {params}")
             response = requests.get(base_url, params=params)
-            response.raise_for_status()
+            response.raise_for_status()  # Вызовет исключение для кодов 4xx/5xx
             hotels_data = response.json()
+            print(f"Hotellook API response: {hotels_data}")
 
             # Преобразуем данные и фильтруем отели
             hotels = []
@@ -69,10 +92,12 @@ def basic_search_hotels(app):
             # Если не нашли отели для всех категорий, возвращаем ошибку
             if len(selected_hotels) < 3:
                 missing_stars = [star for star in stars_needed if not any(hotel['stars'] == star for hotel in selected_hotels)]
+                print(f"Missing hotels for stars: {missing_stars}")
                 return jsonify({
                     'error': f'Could not find hotels for all required star ratings. Missing: {missing_stars}'
                 }), 404
 
+            print(f"Returning hotels: {selected_hotels}")
             # Возвращаем JSON с ensure_ascii=False
             return app.response_class(
                 response=json.dumps(selected_hotels, ensure_ascii=False),
@@ -80,6 +105,7 @@ def basic_search_hotels(app):
             )
 
         except requests.exceptions.RequestException as e:
+            print(f"Hotellook API error: {str(e)}")
             return jsonify({'error': f'Failed to fetch hotels: {str(e)}'}), 500
 
     @app.route('/api/test_search_hotels')
@@ -88,15 +114,23 @@ def basic_search_hotels(app):
         check_in_date = '2025-05-30'  # Тестовая дата заезда
         check_out_date = '2025-05-31'  # Тестовая дата выезда
         currency = 'RUB'  # Тестовая валюта
-        limit = 50  
+        limit = 50
 
         api_token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
         if not api_token:
             return jsonify({'error': 'Missing API token'}), 500
 
+        # Преобразуем город в IATA-код
+        city_iata = get_city_iata(city)
+        if not city_iata:
+            print(f"Could not resolve IATA code for city: {city}")
+            return jsonify({'error': f'Could not resolve IATA code for city: {city}'}), 400
+
+        print(f"Resolved IATA code for {city}: {city_iata}")
+
         base_url = 'https://engine.hotellook.com/api/v2/cache.json'
         params = {
-            'location': city,
+            'location': city_iata if isinstance(city_iata, str) else city_iata[0],
             'checkIn': check_in_date,
             'checkOut': check_out_date,
             'currency': currency,
@@ -107,11 +141,14 @@ def basic_search_hotels(app):
 
         try:
             # Выполняем запрос к API
+            print(f"Sending test request to Hotellook API with params: {params}")
             response = requests.get(base_url, params=params)
             if response.status_code != 200:
+                print(f"Hotellook API error: {response.status_code} - {response.text}")
                 return jsonify({'error': 'Failed to fetch data from Hotellook API'}), response.status_code
 
             hotels_data = response.json()
+            print(f"Hotellook API test response: {hotels_data}")
 
             # Проверяем, есть ли данные
             if not hotels_data:
@@ -151,11 +188,12 @@ def basic_search_hotels(app):
             # Если не нашли отели для всех категорий, возвращаем ошибку
             if len(selected_hotels) < 3:
                 missing_stars = [star for star in stars_needed if not any(hotel['stars'] == star for hotel in selected_hotels)]
+                print(f"Missing hotels for stars: {missing_stars}")
                 return jsonify({
                     'error': f'Could not find hotels for all required star ratings. Missing: {missing_stars}'
                 }), 404
 
-
+            print(f"Returning test hotels: {selected_hotels}")
             # Возвращаем JSON с ensure_ascii=False
             return app.response_class(
                 response=json.dumps(selected_hotels, ensure_ascii=False),
@@ -163,4 +201,5 @@ def basic_search_hotels(app):
             )
 
         except requests.exceptions.RequestException as e:
+            print(f"Hotellook API test error: {str(e)}")
             return jsonify({'error': f'Failed to fetch hotels: {str(e)}'}), 500
