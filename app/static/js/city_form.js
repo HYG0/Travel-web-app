@@ -71,15 +71,15 @@ function addFlight() {
     newFlight.innerHTML = `
         <button class="remove-btn">✖</button>
         <div class="mb-2">
-            <input type="text" class="form-control city-input from-city" placeholder="Откуда">
+            <input type="text" class="form-control city-input from-city" placeholder="Откуда" required>
             <ul class="suggestions"></ul>
         </div>
         <div class="mb-2">
-            <input type="text" class="form-control city-input to-city" placeholder="Куда">
+            <input type="text" class="form-control city-input to-city" placeholder="Куда" required>
             <ul class="suggestions"></ul>
         </div>
         <div class="mb-2">
-            <input type="date" class="form-control date-input" min="" max="2100-12-31">
+            <input type="date" class="form-control date-input" min="" max="2100-12-31" required>
         </div>
         <div class="mb-2">
             <label>Диапазон стоимости билета</label>
@@ -142,8 +142,11 @@ async function goNext() {
         if (!from || !to) {
             hasInvalidFields = true;
             if (!from) fromInput.classList.add('is-invalid');
-            if (!to) toInput.classList.add('is-invalid');
-        } else if (date) {
+            if (!to) toInput.classList.add('is-invalid');}
+        if (!date) {
+            hasInvalidDate = true;
+            dateInput.classList.add('is-invalid');
+        } else {
             const inputDate = new Date(date);
             inputDate.setHours(0, 0, 0, 0);
 
@@ -196,7 +199,7 @@ async function goNext() {
     }
 
     if (hasInvalidDate) {
-        showCustomAlert("Выберите корректную дату");
+        showCustomAlert("Введите дату или выберите корректную дату");
         return;
     }
 
@@ -319,7 +322,7 @@ function validateDateInput(e) {
     today.setHours(0, 0, 0, 0);
 
     if (!input.value) {
-        input.classList.remove('is-invalid');
+        input.classList.add('is-invalid');
         return;
     }
 
@@ -394,15 +397,15 @@ function restoreSavedFlights() {
         card.innerHTML = `
             <button class="remove-btn">✖</button>
             <div class="mb-2">
-                <input type="text" class="form-control city-input from-city" placeholder="Откуда" value="${from}">
+                <input type="text" class="form-control city-input from-city" placeholder="Откуда" value="${from}" required>
                 <ul class="suggestions"></ul>
             </div>
             <div class="mb-2">
-                <input type="text" class="form-control city-input to-city" placeholder="Куда" value="${to}">
+                <input type="text" class="form-control city-input to-city" placeholder="Куда" value="${to}" required>
                 <ul class="suggestions"></ul>
             </div>
             <div class="mb-2">
-                <input type="date" class="form-control date-input" value="${date}" min="" max="2100-12-31">
+                <input type="date" class="form-control date-input" value="${date || ''}" min="" max="2100-12-31" required>
             </div>
             <div class="mb-2">
                 <label>Диапазон стоимости билета</label>

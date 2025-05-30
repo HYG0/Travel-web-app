@@ -27,14 +27,10 @@ def configure_routes(app):
             route_entry = {
                 'airline': data.get('airline'),
                 'flight_number': data.get('flight_number', 'N/A'),
-                'airports': {
-                    'origin': data.get('origin'),
-                    'destination': data.get('destination')
-                },
-                'dates': {
-                    'departure_at': data.get('departure_at'),
-                    'return_at': data.get('return_at')
-                },
+                'origin': data.get('origin'),
+                'destination': data.get('destination'),
+                'departure_at': data.get('departure_at'),
+                'return_at': data.get('return_at'),
                 'price': data.get('price'),
                 'datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
