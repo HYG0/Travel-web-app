@@ -27,3 +27,9 @@ rm:
 
 clean:
 	docker volume prune -f
+
+exec:
+	docker exec -it app-dev /bin/bash
+
+logs:
+	docker logs -f app-dev

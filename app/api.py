@@ -1,9 +1,7 @@
-from flask import render_template, request, jsonify
-import re
+from flask import request, jsonify
 import requests
-from . import db
-from .models import Users
-
+import datetime
+from .citys import get_city_iata
 
 def basic_search_flights(app):
     @app.route('/search_cities')
@@ -38,64 +36,74 @@ def basic_search_flights(app):
                 })
 
         return jsonify(results)
-    
+
     @app.route('/api/search_flights', methods=['GET'])
     def search_flights():
-        origin = request.args.get('origin')
-        destination = request.args.get('destination')
-        departure_at = request.args.get('departure_at')  # формат YYYY-MM-DD
-        return_at = request.args.get('return_at')        # формат YYYY-MM-DD
-        currency = request.args.get('currency', 'rub')
-        limit = request.args.get('limit', 10)
+        try:
+            origin = request.args.get('origin')
+            destination = request.args.get('destination')
+            departure_at = request.args.get('departure_at')
+            currency = request.args.get('currency', 'RUB')
+            cost_min = float(request.args.get('cost_min', 0))
+            cost_max = float(request.args.get('cost_max', float('inf')))
 
-        token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
-        if not all([origin, destination, departure_at, return_at, token]):
-            return jsonify({'error': 'Missing required parameters'}), 400
+            origin_iata = get_city_iata(origin.split(',')[0].strip())
+            destination_iata = get_city_iata(destination.split(',')[0].strip())
 
-        url = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
-        params = {
-            'origin': origin,
-            'destination': destination,
-            'departure_at': departure_at,
-            'return_at': return_at,
-            'currency': currency,
-            'limit': limit,
-            'token': token,
-            'one_way': 'false',
-            'sorting': 'price'
-        }
+            if origin_iata is None or destination_iata is None:
+                return jsonify([])
 
-        response = requests.get(url, params=params)
-        if response.status_code != 200:
-            return jsonify({'error': 'Failed to fetch data from Aviasales API'}), response.status_code
+            token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
+            params = {
+                'origin': origin_iata,
+                'destination': destination_iata,
+                'departure_at': departure_at,
+                'currency': currency,
+                'limit': 3,
+                'one_way': 'false',
+                'token': token,
+            }
+            
+            url = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
+            response = requests.get(url, params=params)
+            response.raise_for_status()
 
-        data = response.json()
-        if not data.get('success'):
-            return jsonify({'error': 'Aviasales API returned an error'}), 500
+            data = response.json()
 
-        flights = []
-        for item in data.get('data', []):
-            flights.append({
-                'origin': item.get('origin'),
-                'destination': item.get('destination'),
-                'price': item.get('price'),
-                'airline': item.get('airline'),
-                'flight_number': item.get('flight_number'),
-                'departure_at': item.get('departure_at'),
-                'return_at': item.get('return_at'),
-                'transfers': item.get('transfers'),
-                'link': f"https://www.aviasales.ru{item.get('link')}"
-            })
+            flights = []
+            for item in data.get('data', []):
+                price = item.get('price', 0)
+                if cost_min <= price <= cost_max:
+                    departure_time = datetime.datetime.fromisoformat(item['departure_at'].replace('Z', '+00:00'))
+                    duration = datetime.timedelta(minutes=item['duration'])
+                    arrival_time = departure_time + duration
 
-        return jsonify({'data': flights})
+                    flights.append({
+                        'origin': item.get('origin'),
+                        'destination': item.get('destination'),
+                        'price': price,
+                        'currency': currency,
+                        'airline': item.get('airline'),
+                        'flight_number': item.get('flight_number'),
+                        'departure_at': item.get('departure_at'),
+                        'arrival_at': arrival_time.isoformat(),
+                        'duration': item.get('duration'),
+                        'transfers': item.get('transfers'),
+                        'link': f"https://www.aviasales.ru{item.get('link')}"
+                    })
 
-    # Тестовый маршрут с жестко заданными параметрами (для отладки)
+            print(flights)
+
+            return jsonify({'data': flights, 'currency': currency})
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
     @app.route('/api/test_search_flights')
     def test_search_flights():
         origin = 'MOW'
-        destination = 'LED'
-        departure_at = '2025-07-01'
-        return_at = '2025-07-10'
+        destination = 'SVX'
+        departure_at = '2025-05-31'
         currency = 'rub'
         limit = 6
 
@@ -108,12 +116,10 @@ def basic_search_flights(app):
             'origin': origin,
             'destination': destination,
             'departure_at': departure_at,
-            'return_at': return_at,
             'currency': currency,
             'limit': limit,
             'token': token,
             'one_way': 'false',
-            'sorting': 'price'
         }
 
         response = requests.get(url, params=params)

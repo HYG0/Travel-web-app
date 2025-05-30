@@ -90,46 +90,55 @@ signupSubmitBtn.addEventListener('click', () => {
     });
 });
 
-const loginSubmitBtn = document.querySelector('.login .submit-btn');
-loginSubmitBtn.addEventListener('click', () => {
-    const emailInput = document.querySelector('.login .form-holder input[type="email"]');
-    const passwordInput = document.querySelector('.login .form-holder input[type="password"]');
+const loginSubmitBtn = document.querySelector('.login button.submit-btn');
+if (loginSubmitBtn) {
+    loginSubmitBtn.addEventListener('click', () => {
+        const emailInput = document.querySelector('.login input[type="email"]');
+        const passwordInput = document.querySelector('.login input[type="password"]');
 
-    if (emailInput.value.trim() === '' || passwordInput.value.trim() === '') {
-        showNotification('Пожалуйста, заполните все поля для входа!', true);
-        return;
-    }
-    if (!emailInput.value.includes('@')) {
-        showNotification('Некорректный Email для входа! Введите правильный адрес.', true);
-        return;
-    }
-
-    // Отправляем данные входа на сервер
-    fetch('/signin', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            email: emailInput.value.trim(),
-            password: passwordInput.value.trim()
-        })
-    })
-    .then(response => response.json().then(data => ({status: response.status, body: data})))
-    .then(({status, body}) => {
-        if (status === 200) {
-            showNotification('Успешный вход!');
-            setTimeout(() => {
-                window.location.href = '/profile';
-            }, 1500);
-        } else {
-            // Показываем ошибку от сервера
-            const errorMsg = body.error || 'Ошибка входа';
-            showNotification(errorMsg, true);
+        if (!emailInput || !passwordInput) {
+            showNotification('Ошибка формы. Пожалуйста, подождите...', true);
+            window.location.reload();
+            return;
         }
-    })
-    .catch(() => {
-        showNotification('Ошибка сети. Попробуйте позже.', true);
+
+        if (emailInput.value.trim() === '' || passwordInput.value.trim() === '') {
+            showNotification('Пожалуйста, заполните все поля для входа!', true);
+            return;
+        }
+        if (!emailInput.value.includes('@')) {
+            showNotification('Некорректный Email для входа! Введите правильный адрес.', true);
+            return;
+        }
+
+        fetch('/signin', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                email: emailInput.value.trim(),
+                password: passwordInput.value.trim()
+            })
+        })
+        .then(response => response.json().then(data => ({status: response.status, body: data})))
+        .then(({status, body}) => {
+            if (status === 200) {
+                showNotification('Успешный вход!');
+                setTimeout(() => {
+                    window.location.href = '/profile';
+                }, 1500);
+            } else {
+                const errorMsg = body.error || 'Ошибка входа';
+                showNotification(errorMsg, true);
+            }
+        })
+        .catch(() => {
+            showNotification('Ошибка сети. Попробуйте позже.', true);
+        });
     });
-});
+} else {
+    console.error('Кнопка входа не найдена!');
+}
+
 // Функция для переключения видимости пароля
 function setupPasswordToggle() {
     const passwordToggles = document.querySelectorAll('.password-toggle');

@@ -2,6 +2,7 @@ from flask import render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from . import db
+from .fly_routes import configure_routes
 from .models import Users
 from . import api
 
@@ -111,6 +112,14 @@ def register_routes(app):
 
     @app.route('/entry')
     def city_form():
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect(url_for('login'))
+        
+        user = Users.query.get(user_id)
+        if not user:
+            return redirect(url_for('login'))
+        
         return render_template('city_form.html')
 
     @app.route('/routes')
@@ -138,8 +147,13 @@ def register_routes(app):
         # Очищаем сессию
         session.clear()
         # Можно также очистить куки, если нужно
-        # response = redirect(url_for('login'))
-        # response.delete_cookie('session')
-        return redirect(url_for('index'))  # Или на страницу входа
+        # session.pop('user_id', None)
+        #Удаляем куку в браузере
+        response = redirect(url_for('index'))
+        response.delete_cookie('session')
+
+        return redirect(url_for('index'))
+
+    configure_routes(app)
 
     api.basic_search_flights(app)
