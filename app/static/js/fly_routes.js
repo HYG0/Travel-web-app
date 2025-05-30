@@ -168,7 +168,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <button class="select-hotel-btn" data-city="${flight.to}">Выбрать отель</button>
             `;
 
-            renderTimeSlots(flightBlock, flightId, times, savedData);
+            renderTimeSlots(flightBlock, flightId, times, savedData, flight.currency);
             fragment.appendChild(flightBlock);
 
             if (i < flights.length - 1) {
