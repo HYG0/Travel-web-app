@@ -3,7 +3,7 @@ build:
 
 
 run-dev:
-	docker run -p 80:5000 \
+	docker run -p 8080:5000 \
 		-v $(PWD):/travel-app \
 		-e FLASK_APP=wsgi.py \
 		-e SASS_WATCH=true \
