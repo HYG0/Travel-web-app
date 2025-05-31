@@ -1,7 +1,9 @@
 from flask import request, jsonify, session
-from datetime import datetime
+from sqlalchemy.orm.attributes import flag_modified
+
 from . import db
 from .models import Users
+
 
 def configure_routes(app):
     @app.route('/add_route', methods=['POST'])
@@ -79,12 +81,18 @@ def configure_routes(app):
         if not user:
             return jsonify({'message': 'Пользователь не найден'}), 404
 
-        if user.routes and route_id in user.routes:
+        # Проверяем явно на None и наличие ключа
+        if user.routes is not None and route_id in user.routes:
             deleted = user.routes.pop(route_id)
-            db.session.commit()
-            return jsonify({
-                'message': 'Маршрут удален',
-                'deleted_route': deleted
-            }), 200
+            flag_modified(user,"routes")  # Метод помечающий поле, чтобы бд заметила изменения, тк JSON является сложным объектом
+            try:
+                db.session.commit()
+                return jsonify({
+                    'message': 'Маршрут удален',
+                    'deleted_route': deleted
+                }), 200
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({'message': f'Ошибка при удалении {str(e)}'}), 500
 
         return jsonify({'message': 'Маршрут не найден'}), 404

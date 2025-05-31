@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmNoBtn = document.getElementById("confirm-no");
 
     // Переменная для хранения индекса рейса, который нужно удалить
-    let flightIndexToDelete = null;
+    let flightIdToDelete = null;
 
     // Данные пользователя
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const from = route.origin;
                 const to = route.destination;
                 const date = route.flightDate;
-                const flight = {from, to, date};
+                const flight = {from, to, date, id: routeKey};
                 flights.push(flight);
 
                 const timesKey = `times_${from}-${to}-${date}`;
@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="flight-header">
                     <span class="flight-number">${flight.number || "Неизвестно"}</span>
                     <span class="flight-date">${flight.date}</span>
-                    <button class="remove-flight-btn" data-index="${flight.originalIndex}">✖</button>
+                    <button class="remove-flight-btn" data-id="${flight.id}">✖</button>
                 </div>
                 <div class="flight-route">
                     <span class="city">${flight.from} (${flight.origin_airport || '?'})</span>
@@ -172,25 +172,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelectorAll('.remove-flight-btn').forEach(button => {
             button.addEventListener('click', (e) => {
-                const index = parseInt(e.target.getAttribute('data-index'));
-                flightIndexToDelete = index;
+                flightIdToDelete = e.target.getAttribute('data-id');
                 confirmDeleteModal.style.display = "flex";
             });
         });
     }
 
-    function removeFlight(index) {
-        const flights = JSON.parse(localStorage.getItem("flights")) || [];
-        const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
-        const flightToRemove = flights[index];
-        if (flightToRemove) {
-            const flightId = `${flightToRemove.from}-${flightToRemove.to}-${flightToRemove.date}`;
-            const timesKey = `times_${flightId}`;
-            delete flightsData[timesKey];
-            flights.splice(index, 1);
-            localStorage.setItem("flights", JSON.stringify(flights));
-            localStorage.setItem("flightsData", JSON.stringify(flightsData));
+    async function removeFlight(routeId) {
+        try {
+            // Отправляем запрос на удаление маршрута на сервер
+            const response = await fetch(`/remove_route/${routeId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при удалении маршрута');
+            }
+
+            // Удаляем маршрут из localStorage
+            const flights = JSON.parse(localStorage.getItem("flights")) || [];
+            const updatedFlights = flights.filter(flight => flight.id !== routeId);
+            localStorage.setItem("flights", JSON.stringify(updatedFlights));
+
+            // Обновляем flightsData
+            const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
+            const flightToRemove = flights.find(flight => flight.id === routeId);
+            if (flightToRemove) {
+                const flightId = `${flightToRemove.from}-${flightToRemove.to}-${flightToRemove.date}`;
+                const timesKey = `times_${flightId}`;
+                delete flightsData[timesKey];
+                localStorage.setItem("flightsData", JSON.stringify(flightsData));
+            }
+
             renderSelectedFlights();
+            showCustomAlert("Маршрут успешно удален");
+        } catch (error) {
+            console.error('Ошибка при удалении маршрута:', error);
+            showCustomAlert("Не удалось удалить маршрут");
         }
     }
 
@@ -427,14 +445,14 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "/index";
     });
     confirmYesBtn.addEventListener("click", () => {
-        if (flightIndexToDelete !== null) {
-            removeFlight(flightIndexToDelete);
-            flightIndexToDelete = null;
+        if (flightIdToDelete !== null) {
+            removeFlight(flightIdToDelete);
+            flightIdToDelete = null;
         }
         confirmDeleteModal.style.display = "none";
     });
     confirmNoBtn.addEventListener("click", () => {
-        flightIndexToDelete = null;
+        flightIdToDelete = null;
         confirmDeleteModal.style.display = "none";
     });
     window.addEventListener("click", (e) => {
