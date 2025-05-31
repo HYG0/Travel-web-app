@@ -94,7 +94,7 @@ const loginSubmitBtn = document.querySelector('.login button.submit-btn');
 if (loginSubmitBtn) {
     loginSubmitBtn.addEventListener('click', () => {
         const emailInput = document.querySelector('.login input[type="email"]');
-        const passwordInput = document.querySelector('.signup .form-holder .password-input');
+        const passwordInput = document.querySelector('.login .form-holder .password-input')
 
         if (!emailInput || !passwordInput) {
             showNotification('Ошибка формы. Пожалуйста, подождите...', true);
