@@ -2,7 +2,7 @@ from flask import jsonify, request, app
 import requests
 import json
 from datetime import datetime, timedelta
-from .api import get_city_iata  # Импортируем функцию get_city_iata из api.py
+from .api import city_to_iata  # Импортируем функцию get_city_iata из api.py
 
 def basic_search_hotels(app):
     # Настраиваем Flask для отключения не-ASCII символов
@@ -20,7 +20,7 @@ def basic_search_hotels(app):
             return jsonify({'error': 'City parameter is required'}), 400
 
         # Преобразуем название города в IATA-код
-        city_iata = get_city_iata(city)
+        city_iata = city_to_iata(city)
         if not city_iata:
             print(f"Could not resolve IATA code for city: {city}")
             return jsonify({'error': f'Could not resolve IATA code for city: {city}'}), 400
@@ -121,7 +121,7 @@ def basic_search_hotels(app):
             return jsonify({'error': 'Missing API token'}), 500
 
         # Преобразуем город в IATA-код
-        city_iata = get_city_iata(city)
+        city_iata = city_to_iata(city)
         if not city_iata:
             print(f"Could not resolve IATA code for city: {city}")
             return jsonify({'error': f'Could not resolve IATA code for city: {city}'}), 400
