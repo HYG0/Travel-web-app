@@ -50,7 +50,7 @@ const signupSubmitBtn = document.querySelector('.signup .submit-btn');
 signupSubmitBtn.addEventListener('click', () => {
     const nameInput = document.querySelector('.signup .form-holder input[type="text"]');
     const emailInput = document.querySelector('.signup .form-holder input[type="email"]');
-    const passwordInput = document.querySelector('.signup .form-holder input[type="password"]');
+    const passwordInput = document.querySelector('.signup .form-holder .password-input');
 
     if (nameInput.value.trim() === '' || emailInput.value.trim() === '' || passwordInput.value.trim() === '') {
         showNotification('Пожалуйста, заполните все поля!', true);
@@ -94,7 +94,7 @@ const loginSubmitBtn = document.querySelector('.login button.submit-btn');
 if (loginSubmitBtn) {
     loginSubmitBtn.addEventListener('click', () => {
         const emailInput = document.querySelector('.login input[type="email"]');
-        const passwordInput = document.querySelector('.login input[type="password"]');
+        const passwordInput = document.querySelector('.signup .form-holder .password-input');
 
         if (!emailInput || !passwordInput) {
             showNotification('Ошибка формы. Пожалуйста, подождите...', true);
