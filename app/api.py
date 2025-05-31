@@ -44,7 +44,7 @@ def basic_search_flights(app):
     @app.route('/api/search_flights', methods=['GET'])
     def search_flights():
         try:
-            origin = request.args.get('origin')
+            origin = request.args.get('origin')     # Город, Страна
             destination = request.args.get('destination')
             departure_at = request.args.get('departure_at')
             currency = request.args.get('currency', 'RUB')
@@ -56,11 +56,11 @@ def basic_search_flights(app):
             if not origin or not destination or not departure_at:
                 return jsonify({'data': [], 'error': 'Missing required parameters'})
 
-            origin_iatas = city_to_iata(origin.split(',')[0].strip())
-            destination_iatas = city_to_iata(destination.split(',')[0].strip())
-            log(f"Resolved IATA: origin={origin_iatas}, destination={destination_iatas}")
+            origin_iata = city_to_iata(origin.split(',')[0].strip())
+            destination_iata = city_to_iata(destination.split(',')[0].strip())
+            log(f"Resolved IATA: origin={origin_iata}, destination={destination_iata}")
 
-            if origin_iatas is None or destination_iatas is None:
+            if origin_iata is None or destination_iata is None:
                 return jsonify({'data': [], 'error': 'Invalid city IATA code'})
 
             token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
@@ -69,29 +69,28 @@ def basic_search_flights(app):
             page = 1
             max_pages = 10
 
-            for orig_iata in (origin_iatas if isinstance(origin_iatas, list) else [origin_iatas]):
-                for dest_iata in (destination_iatas if isinstance(destination_iatas, list) else [destination_iatas]):
-                    while page <= max_pages:
-                        params = {
-                            'origin': orig_iata,
-                            'destination': dest_iata,
-                            'departure_at': departure_at,
-                            'currency': currency,
-                            'limit': 100,
-                            'page': page,
-                            'one_way': 'false',
-                            'token': token,
-                        }
-                        response = requests.get(url, params=params)
-                        response.raise_for_status()
-                        data = response.json()
-                        raw_flights = data.get('data', [])
-                        if not raw_flights:
-                            break
-                        all_flights.extend(raw_flights)
-                        page += 1
+            while page <= max_pages:
+                params = {
+                    'origin': origin_iata,
+                    'destination': destination_iata,
+                    'departure_at': departure_at,
+                    'currency': currency,
+                    'limit': 100,
+                    'page': page,
+                    'one_way': 'false',
+                    'token': token,
+                }
+                response = requests.get(url, params=params)
+                response.raise_for_status()
+                data = response.json()
+                raw_flights = data.get('data', [])
+                if not raw_flights:
+                    break
+                all_flights.extend(raw_flights)
+                page += 1
 
             log(f"Raw flights count: {len(all_flights)}")
+            # log(f"Raw flights: {all_flights}")
             log(f"Raw prices: {[float(item.get('price', 0)) for item in all_flights]}")
 
             flights = []
@@ -125,8 +124,10 @@ def basic_search_flights(app):
                     )
 
                     flights.append({
-                        'origin': item.get('origin'),
-                        'destination': item.get('destination'),
+                        'origin': origin,                           # Точка вылета в формате: Город, страна
+                        'destination': destination,                 # Точка прилета в формате: Город, страна
+                        'origin_airport': item.get('origin_airport'),           # IATA код аэропорта вылета
+                        'destination_airport': item.get('destination_airport'), # IATA код аэропорта прилета
                         'price': price,
                         'currency': currency,
                         'airline': item.get('airline'),
@@ -166,9 +167,11 @@ def basic_search_flights(app):
 
     @app.route('/api/test_search_flights')
     def test_search_flights():
-        origin = 'MOW'
-        destination = 'KUF'
-        departure_at = '2025-07-30'
+        origin = 'Москва, Россия'
+        destination = 'Екатеринбург, Россия'
+        origin_iata = city_to_iata(origin.split(',')[0].strip())
+        destination_iata = city_to_iata(destination.split(',')[0].strip())
+        departure_at = '2025-06-07'
         currency = 'RUB'
         limit = 100
 
@@ -178,8 +181,8 @@ def basic_search_flights(app):
 
         url = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
         params = {
-            'origin': origin,
-            'destination': destination,
+            'origin': origin_iata,
+            'destination': destination_iata,
             'departure_at': departure_at,
             'currency': currency,
             'limit': limit,
@@ -212,8 +215,10 @@ def basic_search_flights(app):
                     )
 
                     flights.append({
-                        'origin': item.get('origin'),
-                        'destination': item.get('destination'),
+                        'origin': origin,
+                        'destination': destination,
+                        'origin_airport': item.get('origin_airport'),
+                        'destination_airport': item.get('destination_airport'),
                         'price': item.get('price'),
                         'airline': item.get('airline'),
                         'flight_number': item.get('flight_number'),

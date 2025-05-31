@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         flights = [{
             from: "Москва, Россия",
             to: "Екатеринбург, Россия",
+            from_airport: "SVO",
+            to_airport: "SVX",
             date: "2025-05-30",
             costMin: 0,
             costMax: Infinity,
@@ -136,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     const flightId = flightBlock.dataset.flightId;
                     const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
                     if (!flightsData[`times_${flightId}`]) {
-                        flightsData[`times_${flightId}`] = { times: [], selectedIndex: undefined };
+                        flightsData[`times_${flightId}`] = {times: [], selectedIndex: undefined};
                     }
                     flightsData[`times_${flightId}`].hotelName = hotelName;
                     localStorage.setItem("flightsData", JSON.stringify(flightsData));
@@ -206,19 +208,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         for (const flight of flights) {
             const flightId = generateFlightKey(flight);
-            const options = await fetchFlightOptions(flight.from, flight.to, flight.date, flight.costMin, flight.costMax, flight.currency);
-            currentFlightsData[`times_${flightId}`] = { times: options, selectedIndex: undefined };
+            const options = await fetchFlightOptions(flight.from, flight.to, flight.from_airport, flight.to_airport, flight.date, flight.costMin, flight.costMax, flight.currency);
+            currentFlightsData[`times_${flightId}`] = {times: options, selectedIndex: undefined};
         }
 
         localStorage.setItem("flightsData", JSON.stringify(currentFlightsData));
     }
 
-    async function fetchFlightOptions(from, to, date, costMin, costMax, currency) {
+    async function fetchFlightOptions(from, to, from_airport, to_airport, date, costMin, costMax, currency) {
         try {
-            const cleanCity = (city) => city.split(",")[0].trim();
             const params = new URLSearchParams({
-                origin: cleanCity(from),
-                destination: cleanCity(to),
+                origin: from,
+                destination: to,
                 departure_at: date,
                 currency: currency,
                 cost_min: costMin,
@@ -232,7 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 throw new Error(error.error || "Ошибка загрузки данных");
             }
 
-            const { data } = await response.json();
+            const {data} = await response.json();
 
             return data
                 .filter(flight => {
@@ -240,15 +241,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                     return costMin <= price && price <= costMax;
                 })
                 .map(flight => {
-                    const departureTime = new Date(flight.departure_at);
-                    const arrivalTime = new Date(flight.arrival_at);
 
                     return {
-                        departure: departureTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                        arrival: arrivalTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                        airline: flight.airline,
+                        departure: flight.departure_at,
+                        arrival: flight.return_at,
+                        duration: flight.duration,
                         number: `${flight.airline}${flight.flight_number}`,
                         price: flight.price,
-                        currency: flight.currency
+                        currency: flight.currency,
+                        origin_airport: flight.origin_airport,
+                        destination_airport: flight.destination_airport
                     };
                 });
         } catch (error) {
@@ -267,7 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 currency: currency
             });
 
-            const response = await fetch(`/api/search_hotels?${params}`, { timeout: 10000 });
+            const response = await fetch(`/api/search_hotels?${params}`, {timeout: 10000});
             if (!response.ok) {
                 throw new Error("Не удалось установить соединение с сервером. Проверьте интернет и попробуйте снова.");
             }
@@ -279,7 +282,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return data;
         } catch (error) {
             console.error("Fetch Hotels Error:", error);
-            return { error: error.message };
+            return {error: error.message};
         }
     }
 
@@ -293,8 +296,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             const flight = flights[i];
             const flightId = generateFlightKey(flight);
 
-            const times = await fetchFlightOptions(flight.from, flight.to, flight.date, flight.costMin, flight.costMax, flight.currency);
-            savedData[`times_${flightId}`] = { times: times, selectedIndex: undefined };
+            const times = await fetchFlightOptions(flight.from, flight.to, flight.from_airport, flight.to_airport, flight.date, flight.costMin, flight.costMax, flight.currency);
+            savedData[`times_${flightId}`] = {times: times, selectedIndex: undefined};
             localStorage.setItem("flightsData", JSON.stringify(savedData));
 
             const flightBlock = document.createElement("div");
@@ -342,6 +345,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         times.slice(0, 6).forEach((time, index) => {
             const slot = document.createElement("div");
             slot.className = "time-slot";
+            // Сохраняем IATA-коды в data-атрибуты
+            slot.dataset.originIata = time.origin_airport || '';
+            slot.dataset.destinationIata = time.destination_airport || '';
             if (savedData[`times_${flightId}`]?.selectedIndex === index) {
                 slot.classList.add("selected", "centered");
             }
@@ -386,7 +392,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!silent) {
             const currentData = JSON.parse(localStorage.getItem("flightsData")) || {};
             if (!currentData[`times_${flightId}`]) {
-                currentData[`times_${flightId}`] = { times: [], selectedIndex: undefined };
+                currentData[`times_${flightId}`] = {times: [], selectedIndex: undefined};
             }
             currentData[`times_${flightId}`].selectedIndex = index;
             localStorage.setItem("flightsData", JSON.stringify(currentData));
@@ -451,12 +457,32 @@ function sendSingleRoute(card) {
     const flightNumber = card.querySelector(".time-slot.selected .flight-num")?.textContent.trim();
     const priceStr = card.querySelector(".time-slot.selected .price")?.textContent.trim();
     const currency = card.querySelector(".time-slot.selected .price")?.textContent.trim().replace(/\d+/, '').trim();
-    // Получаем hotelName из flightsData
+
+    // Получаем дополнительные данные из сохраненных данных
     const flightId = card.dataset.flightId;
     const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
+    const timeData = flightsData[`times_${flightId}`]?.times?.[flightsData[`times_${flightId}`]?.selectedIndex];
     const hotelName = flightsData[`times_${flightId}`]?.hotelName || "Не указан";
 
-    console.log("DEBUG: ", { fromCity, toCity, flightDate, time, flightNumber, priceStr, currency, hotelName });
+    // Получаем IATA-коды из data-атрибутов
+    const selectedSlot = card.querySelector(".time-slot.selected");
+    const originIATA = selectedSlot?.dataset.originIata || '';
+    const destinationIATA = selectedSlot?.dataset.destinationIata || '';
+
+    console.log("DEBUG: ", {
+        fromCity,
+        toCity,
+        flightDate,
+        time,
+        flightNumber,
+        priceStr,
+        currency,
+        hotelName,
+        airline: timeData?.airline,
+        duration: timeData?.duration,
+        originIATA,
+        destinationIATA
+    });
 
     if (!fromCity || !toCity || !flightDate || !time || !flightNumber || !priceStr) {
         console.warn("Недостаточно данных для маршрута.");
@@ -464,18 +490,24 @@ function sendSingleRoute(card) {
     }
 
     const price = parseInt(priceStr.replace(/[^\d]/g, ""), 10);
-    const [departureAt, returnAt] = time.split("-");
+
+    // Разбиваем время на departure и arrival
+    const [departureTime, arrivalTime] = time.split("-");
 
     const payload = {
+        airline: timeData?.airline || flightNumber.slice(0, 2),
         origin: fromCity,
         destination: toCity,
-        departure_at: departureAt,
-        return_at: returnAt,
+        origin_airport: originIATA,
+        destination_airport: destinationIATA,
+        departure_at: departureTime.trim(),
+        return_at: arrivalTime.trim(),
         flight_number: flightNumber,
+        duration: timeData?.duration || "Неизвестно",
         price: price,
-        currency: currency,        // Добавляем валюту
-        hotelName: hotelName,     // Добавляем название отеля
-        flightDate: flightDate    // Добавляем дату полета
+        currency: currency,
+        hotelName: hotelName,
+        flightDate: flightDate
     };
 
     return fetch("/add_route", {

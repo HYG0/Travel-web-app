@@ -179,7 +179,7 @@ async function goNext() {
                 }
 
                 // Используем данные из API для формирования объекта flight
-                const firstFlight = searchResults.data[0]; // Берем первый рейс для получения origin и destination
+                // const firstFlight = searchResults.data[0]; // Берем первый рейс для получения origin и destination
                 flights.push({
                     from: `${fromInput.value}`, // Сохраняем пользовательский ввод для отображения
                     to: `${toInput.value}`,     // Сохраняем пользовательский ввод для отображения
@@ -187,7 +187,7 @@ async function goNext() {
                     costMin,
                     costMax,
                     currency,
-                    available_flights: searchResults.data // Реальные данные из API
+                    available_flights: searchResults.data // Сохраняем все рейсы
                 });
             }
         }

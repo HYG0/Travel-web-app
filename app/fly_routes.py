@@ -28,8 +28,11 @@ def configure_routes(app):
                 'flight_number': data.get('flight_number', 'N/A'),
                 'origin': data.get('origin'),
                 'destination': data.get('destination'),
+                'origin_airport': data.get('origin_airport'),
+                'destination_airport': data.get('destination_airport'),
                 'departure_at': data.get('departure_at'),
                 'return_at': data.get('return_at'),
+                'duration': data.get('duration'),
                 'price': data.get('price'),
                 'currency': data.get('currency', 'RUB'),  # Сохраняем валюту, по умолчанию RUB
                 'hotelName': data.get('hotelName', 'Не указан'),  # Сохраняем отель
