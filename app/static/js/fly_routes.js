@@ -410,13 +410,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Заменяем существующую функцию formatDate
     function formatDate(dateString) {
         const months = [
             "янв", "фев", "мар", "апр", "мая", "июн",
             "июл", "авг", "сен", "окт", "ноя", "дек",
         ];
         const date = new Date(dateString);
-        return `${date.getDate()} ${months[date.getMonth()]}`;
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear(); // Добавляем год
+        return `${day} ${month} ${year}`; // Возвращаем дату с годом
     }
 
     function showCustomAlert(message, type = "success") {
@@ -446,8 +450,13 @@ function sendSingleRoute(card) {
     const time = card.querySelector(".time-slot.selected .time")?.textContent.trim();
     const flightNumber = card.querySelector(".time-slot.selected .flight-num")?.textContent.trim();
     const priceStr = card.querySelector(".time-slot.selected .price")?.textContent.trim();
+    const currency = card.querySelector(".time-slot.selected .price")?.textContent.trim().replace(/\d+/, '').trim();
+    // Получаем hotelName из flightsData
+    const flightId = card.dataset.flightId;
+    const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
+    const hotelName = flightsData[`times_${flightId}`]?.hotelName || "Не указан";
 
-    console.log("DEBUG: ", { fromCity, toCity, flightDate, time, flightNumber, priceStr });
+    console.log("DEBUG: ", { fromCity, toCity, flightDate, time, flightNumber, priceStr, currency, hotelName });
 
     if (!fromCity || !toCity || !flightDate || !time || !flightNumber || !priceStr) {
         console.warn("Недостаточно данных для маршрута.");
@@ -464,6 +473,9 @@ function sendSingleRoute(card) {
         return_at: returnAt,
         flight_number: flightNumber,
         price: price,
+        currency: currency,        // Добавляем валюту
+        hotelName: hotelName,     // Добавляем название отеля
+        flightDate: flightDate    // Добавляем дату полета
     };
 
     return fetch("/add_route", {

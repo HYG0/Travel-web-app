@@ -47,7 +47,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Инициализация профиля
-    function initProfile() {
+    async function initProfile() {
+        try {
+            // Получение данных с сервера
+            const response = await fetch('/data/get_data');
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            const data = await response.json();
+
+            // Обработка данных
+            const flights = [];
+            const flightsData = {};
+
+            for (const routeKey in data) {
+                const route = data[routeKey];
+                const from = route.origin;
+                const to = route.destination;
+                const date = route.flightDate; // Используем flightDate вместо datetime
+                const flight = {from, to, date};
+                flights.push(flight);
+
+                const timesKey = `times_${from}-${to}-${date}`;
+                const timeData = {
+                    departure: route.departure_at,
+                    arrival: route.return_at,
+                    price: route.price,
+                    currency: route.currency,   // Используем валюту из данных
+                    number: route.flight_number
+                };
+                flightsData[timesKey] = {
+                    times: [timeData],
+                    selectedIndex: 0,
+                    hotelName: route.hotelName // Используем отель из данных
+                };
+            }
+
+            // Сохранение в localStorage
+            localStorage.setItem("flights", JSON.stringify(flights));
+            localStorage.setItem("flightsData", JSON.stringify(flightsData));
+        } catch (error) {
+            console.error('Ошибка при загрузке данных:', error);
+            showCustomAlert('Не удалось загрузить данные с сервера');
+        }
+
+        // Инициализация аватара
         if (userData.avatar) {
             avatarLabel.textContent = "";
             avatarLabel.style.backgroundImage = `url(${userData.avatar})`;
@@ -55,10 +99,12 @@ document.addEventListener("DOMContentLoaded", () => {
             avatarLabel.textContent = "Ава";
             avatarLabel.style.backgroundImage = "";
         }
+
+        // Отображение рейсов
         renderSelectedFlights();
     }
 
-    const currencySymbols = { 'RUB': '₽', 'USD': '$', 'EUR': '€' };
+    const currencySymbols = {'RUB': '₽', 'USD': '$', 'EUR': '€'};
 
     function renderSelectedFlights() {
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
@@ -77,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return {
                         ...flight,
                         ...timeData,
-                        price: timeData.price ? `${timeData.price}${currencySymbols[timeData.currency] || '₽'}` : "Неизвестно",
+                        price: timeData.price ? timeData.price : "Неизвестно",
                         originalIndex: index
                     };
                 }
@@ -104,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
             flightCard.innerHTML = `
                 <div class="flight-header">
                     <span class="flight-number">${flight.number || "Неизвестно"}</span>
-                    <span class="flight-date">${formatDate(flight.date)}</span>
+                    <span class="flight-date">${flight.date}</span>
                     <button class="remove-flight-btn" data-index="${flight.originalIndex}">✖</button>
                 </div>
                 <div class="flight-route">
@@ -114,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="flight-time">
                     <span>${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"}</span>
-                    <span class="flight-price">${flight.price}</span>
+                    <span class="flight-price">${flight.price}${flight.currency || '₽'}</span>
                 </div>
                 <div class="flight-hotel">Отель: ${hotelName}</div>
             `;
@@ -147,15 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function formatDate(dateStr) {
-        const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-        const date = new Date(dateStr);
-        const day = date.getDate();
-        const month = months[date.getMonth()];
-        const year = date.getFullYear();
-        return `${day} ${month} ${year}`;
-    }
-
     function calculateFlightDuration(departure, arrival) {
         const [depHours, depMinutes] = departure.split(":").map(Number);
         const [arrHours, arrMinutes] = arrival.split(":").map(Number);
@@ -169,7 +206,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getAirline(flightNumber) {
         const airlineCode = flightNumber.slice(0, 2);
-        const airlines = { "SU": "Aeroflot", "S7": "S7 Airlines", "U6": "Ural Airlines" };
+        const airlines = {
+            "SU": "Aeroflot",
+            "S7": "S7 Airlines",
+            "U6": "Ural Airlines",
+            "FV": "Rossiya Airlines",
+            "DP": "Pobeda",
+            "UT": "UTair Aviation",
+            "WZ": "Red Wings Airlines",
+            "N4": "Nordwind Airlines",
+            "5N": "Smartavia",
+            "D2": "Severstal Air Company",
+            "I8": "Izhavia",
+            "B2": "Belavia",
+            "LH": "Lufthansa",
+            "TK": "Turkish Airlines",
+            "EK": "Emirates",
+            "QR": "Qatar Airways",
+            "EY": "Etihad Airways",
+            "AF": "Air France",
+            "KL": "KLM",
+            "BA": "British Airways",
+            "AA": "American Airlines",
+            "DL": "Delta Air Lines",
+            "UA": "United Airlines",
+            "JL": "Japan Airlines",
+            "NH": "ANA",
+            "SQ": "Singapore Airlines",
+            "CX": "Cathay Pacific",
+            "CA": "Air China",
+            "MU": "China Eastern",
+            "CZ": "China Southern",
+            "KE": "Korean Air",
+            "OZ": "Asiana Airlines",
+            "TG": "Thai Airways",
+            "VN": "Vietnam Airlines",
+            "GA": "Garuda Indonesia",
+            "QF": "Qantas",
+            "AC": "Air Canada",
+            "AI": "Air India",
+            "ET": "Ethiopian Airlines",
+            "MS": "EgyptAir",
+            "SV": "Saudia"
+        };
         return airlines[airlineCode] || "Неизвестная авиакомпания";
     }
 
@@ -185,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (flightsData[timesKey]?.selectedIndex !== undefined) {
                     const selectedIndex = flightsData[timesKey].selectedIndex;
                     const timeData = flightsData[timesKey]?.times?.[selectedIndex] || {};
-                    return { ...flight, ...timeData, flightId };
+                    return {...flight, ...timeData, flightId};
                 }
                 return null;
             })
@@ -196,14 +275,14 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const { jsPDF } = window.jspdf;
+        const {jsPDF} = window.jspdf;
         if (!jsPDF) {
             console.error("jsPDF is not loaded");
             showCustomAlert("Ошибка: библиотека jsPDF не подключена");
             return;
         }
 
-        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const pdf = new jsPDF({orientation: "portrait", unit: "mm", format: "a4"});
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         const margin = 10;
@@ -231,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const renderToPDF = async (container) => {
             try {
-                const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#007bff" });
+                const canvas = await html2canvas(container, {scale: 2, useCORS: true, backgroundColor: "#007bff"});
                 if (!canvas) throw new Error("Failed to render canvas");
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 addPageIfNeeded(imgHeight);
@@ -262,14 +341,6 @@ document.addEventListener("DOMContentLoaded", () => {
         flightsSectionContainer.appendChild(flightsSection);
         await renderToPDF(flightsSectionContainer);
 
-        function formatDateForPDF(dateStr) {
-            const date = new Date(dateStr);
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}.${month}.${year}`;
-        }
-
         for (const flight of selectedFlights) {
             const ticketContainer = createTempContainer();
             const ticket = document.createElement("div");
@@ -282,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ticket.innerHTML = `
                 <div class="ticket-header">
                     <span class="ticket-number">${flight.number || "Неизвестно"}</span>
-                    <span class="ticket-date">${formatDateForPDF(flight.date)}</span>
+                    <span class="ticket-date">${flight.date}</span>
                 </div>
                 <div class="ticket-airline">${airline}</div>
                 <div class="ticket-route">
@@ -292,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="ticket-time">${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"}</div>
                 <div class="ticket-duration">Продолжительность: ${duration}</div>
-                <div class="ticket-price">Стоимость: ${flight.price}${currencySymbols[flight.currency] || '₽'}</div>
+                <div class="ticket-price">Стоимость: ${flight.price}${flight.currency || '₽'}</div>
                 <div class="ticket-hotel">Отель: ${hotelName}</div>
                 <div class="ticket-barcode">Рейс №: ${flight.number || "Неизвестно"}</div>
             `;
@@ -320,7 +391,9 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("PDF save attempted");
     });
 
-    avatarLabel.addEventListener("click", () => { avatarOptionsModal.style.display = "flex"; });
+    avatarLabel.addEventListener("click", () => {
+        avatarOptionsModal.style.display = "flex";
+    });
     viewAvatarBtn.addEventListener("click", () => {
         if (userData.avatar) {
             fullAvatarImg.src = userData.avatar;
@@ -348,9 +421,11 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         reader.readAsDataURL(file);
     });
-    addFlightBtn.addEventListener("click", () => { window.location.href = "/entry"; });
+    addFlightBtn.addEventListener("click", () => {
+        window.location.href = "/entry";
+    });
     logoutBtn.addEventListener("click", () => {
-        fetch('/logout', { method: 'GET', credentials: 'same-origin' })
+        fetch('/logout', {method: 'GET', credentials: 'same-origin'})
             .then(response => {
                 if (response.redirected) {
                     localStorage.clear();
@@ -359,7 +434,9 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(error => console.error('Ошибка при выходе:', error));
     });
-    homeBtn.addEventListener("click", () => { window.location.href = "/index"; });
+    homeBtn.addEventListener("click", () => {
+        window.location.href = "/index";
+    });
     confirmYesBtn.addEventListener("click", () => {
         if (flightIndexToDelete !== null) {
             removeFlight(flightIndexToDelete);
