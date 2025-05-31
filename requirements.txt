@@ -1,6 +1,9 @@
+airportsdata==20250523
 alembic==1.15.1
 blinker==1.9.0
+cachetools==6.0.0
 certifi==2025.4.26
+cffi==1.17.1
 charset-normalizer==3.4.2
 click==8.1.8
 dnspython==2.7.0
@@ -10,7 +13,10 @@ Flask-Login==0.6.3
 Flask-Migrate==4.1.0
 Flask-SQLAlchemy==3.1.1
 Flask-WTF==1.2.2
+geographiclib==2.0
+geopy==2.4.1
 greenlet==3.1.1
+h3==4.2.2
 idna==3.10
 isbnlib==3.10.3
 iso3166==1.0.1
@@ -18,12 +24,15 @@ itsdangerous==2.2.0
 Jinja2==3.1.6
 Mako==1.3.9
 MarkupSafe==3.0.2
+numpy==2.2.6
 py-moneyed==0.8.0
 pycountry==24.6.1
+pycparser==2.22
 pytz==2020.1
 requests==2.32.3
 schwifty==2020.9.0
 SQLAlchemy==2.0.39
+timezonefinder==6.5.9
 typing_extensions==4.12.2
 urllib3==2.4.0
 Werkzeug==3.1.3

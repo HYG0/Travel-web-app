@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmNoBtn = document.getElementById("confirm-no");
 
     // Переменная для хранения индекса рейса, который нужно удалить
-    let flightIndexToDelete = null;
+    let flightIdToDelete = null;
 
     // Данные пользователя
     const userData = JSON.parse(localStorage.getItem("userData")) || {};
@@ -64,8 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const route = data[routeKey];
                 const from = route.origin;
                 const to = route.destination;
-                const date = route.flightDate; // Используем flightDate вместо datetime
-                const flight = {from, to, date};
+                const date = route.flightDate;
+                const flight = {from, to, date, id: routeKey};
                 flights.push(flight);
 
                 const timesKey = `times_${from}-${to}-${date}`;
@@ -74,7 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     arrival: route.return_at,
                     price: route.price,
                     currency: route.currency,   // Используем валюту из данных
-                    number: route.flight_number
+                    number: route.flight_number,
+                    duration: route.duration,
+                    origin_airport: route.origin_airport,
+                    destination_airport: route.destination_airport
                 };
                 flightsData[timesKey] = {
                     times: [timeData],
@@ -103,8 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // Отображение рейсов
         renderSelectedFlights();
     }
-
-    const currencySymbols = {'RUB': '₽', 'USD': '$', 'EUR': '€'};
 
     function renderSelectedFlights() {
         const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
@@ -151,15 +152,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="flight-header">
                     <span class="flight-number">${flight.number || "Неизвестно"}</span>
                     <span class="flight-date">${flight.date}</span>
-                    <button class="remove-flight-btn" data-index="${flight.originalIndex}">✖</button>
+                    <button class="remove-flight-btn" data-id="${flight.id}">✖</button>
                 </div>
                 <div class="flight-route">
-                    <span class="city">${flight.from}</span>
+                    <span class="city">${flight.from} (${flight.origin_airport || '?'})</span>
                     <span class="arrow">→</span>
-                    <span class="city">${flight.to}</span>
+                    <span class="city">${flight.to} (${flight.destination_airport || '?'})</span>
                 </div>
                 <div class="flight-time">
-                    <span>${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"}</span>
+                    <span>${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"} (местное время)</span>
                     <span class="flight-price">${flight.price}${flight.currency || '₽'}</span>
                 </div>
                 <div class="flight-hotel">Отель: ${hotelName}</div>
@@ -171,37 +172,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelectorAll('.remove-flight-btn').forEach(button => {
             button.addEventListener('click', (e) => {
-                const index = parseInt(e.target.getAttribute('data-index'));
-                flightIndexToDelete = index;
+                flightIdToDelete = e.target.getAttribute('data-id');
                 confirmDeleteModal.style.display = "flex";
             });
         });
     }
 
-    function removeFlight(index) {
-        const flights = JSON.parse(localStorage.getItem("flights")) || [];
-        const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
-        const flightToRemove = flights[index];
-        if (flightToRemove) {
-            const flightId = `${flightToRemove.from}-${flightToRemove.to}-${flightToRemove.date}`;
-            const timesKey = `times_${flightId}`;
-            delete flightsData[timesKey];
-            flights.splice(index, 1);
-            localStorage.setItem("flights", JSON.stringify(flights));
-            localStorage.setItem("flightsData", JSON.stringify(flightsData));
-            renderSelectedFlights();
-        }
-    }
+    async function removeFlight(routeId) {
+        try {
+            // Отправляем запрос на удаление маршрута на сервер
+            const response = await fetch(`/remove_route/${routeId}`, {
+                method: 'DELETE'
+            });
 
-    function calculateFlightDuration(departure, arrival) {
-        const [depHours, depMinutes] = departure.split(":").map(Number);
-        const [arrHours, arrMinutes] = arrival.split(":").map(Number);
-        const depTotal = depHours * 60 + depMinutes;
-        const arrTotal = arrHours * 60 + arrMinutes;
-        const duration = arrTotal - depTotal;
-        const hours = Math.floor(duration / 60);
-        const minutes = duration % 60;
-        return `${hours}ч ${minutes}мин`;
+            if (!response.ok) {
+                throw new Error('Ошибка при удалении маршрута');
+            }
+
+            // Удаляем маршрут из localStorage
+            const flights = JSON.parse(localStorage.getItem("flights")) || [];
+            const updatedFlights = flights.filter(flight => flight.id !== routeId);
+            localStorage.setItem("flights", JSON.stringify(updatedFlights));
+
+            // Обновляем flightsData
+            const flightsData = JSON.parse(localStorage.getItem("flightsData")) || {};
+            const flightToRemove = flights.find(flight => flight.id === routeId);
+            if (flightToRemove) {
+                const flightId = `${flightToRemove.from}-${flightToRemove.to}-${flightToRemove.date}`;
+                const timesKey = `times_${flightId}`;
+                delete flightsData[timesKey];
+                localStorage.setItem("flightsData", JSON.stringify(flightsData));
+            }
+
+            renderSelectedFlights();
+            showCustomAlert("Маршрут успешно удален");
+        } catch (error) {
+            console.error('Ошибка при удалении маршрута:', error);
+            showCustomAlert("Не удалось удалить маршрут");
+        }
     }
 
     function getAirline(flightNumber) {
@@ -345,7 +353,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const ticketContainer = createTempContainer();
             const ticket = document.createElement("div");
             ticket.className = "ticket";
-            const duration = calculateFlightDuration(flight.departure || "00:00", flight.arrival || "00:00");
             const airline = getAirline(flight.number || "SU000");
             const flightId = `${flight.from}-${flight.to}-${flight.date}`;
             const timesKey = `times_${flightId}`;
@@ -357,12 +364,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="ticket-airline">${airline}</div>
                 <div class="ticket-route">
-                    <span class="ticket-city">${flight.from}</span>
+                    <span class="ticket-city">${flight.from} (${flight.origin_airport})</span>
                     <span class="ticket-arrow">→</span>
-                    <span class="ticket-city">${flight.to}</span>
+                    <span class="ticket-city">${flight.to} (${flight.destination_airport})</span>
                 </div>
-                <div class="ticket-time">${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"}</div>
-                <div class="ticket-duration">Продолжительность: ${duration}</div>
+                <div class="ticket-time">${flight.departure || "Не указано"} - ${flight.arrival || "Не указано"} (местное время)</div>
+                <div class="ticket-duration">Продолжительность: ${flight.duration || "Неизвестно"}</div>
                 <div class="ticket-price">Стоимость: ${flight.price}${flight.currency || '₽'}</div>
                 <div class="ticket-hotel">Отель: ${hotelName}</div>
                 <div class="ticket-barcode">Рейс №: ${flight.number || "Неизвестно"}</div>
@@ -438,14 +445,14 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "/index";
     });
     confirmYesBtn.addEventListener("click", () => {
-        if (flightIndexToDelete !== null) {
-            removeFlight(flightIndexToDelete);
-            flightIndexToDelete = null;
+        if (flightIdToDelete !== null) {
+            removeFlight(flightIdToDelete);
+            flightIdToDelete = null;
         }
         confirmDeleteModal.style.display = "none";
     });
     confirmNoBtn.addEventListener("click", () => {
-        flightIndexToDelete = null;
+        flightIdToDelete = null;
         confirmDeleteModal.style.display = "none";
     });
     window.addEventListener("click", (e) => {

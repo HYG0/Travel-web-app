@@ -1,7 +1,8 @@
 from flask import request, jsonify
 import requests
 import datetime
-from .citys import get_city_iata
+from .citys import city_to_iata
+from .time_zones import calculate_flight_duration
 
 def log(message):
     print(f"[1] {message}")
@@ -43,7 +44,7 @@ def basic_search_flights(app):
     @app.route('/api/search_flights', methods=['GET'])
     def search_flights():
         try:
-            origin = request.args.get('origin')
+            origin = request.args.get('origin')     # Город, Страна
             destination = request.args.get('destination')
             departure_at = request.args.get('departure_at')
             currency = request.args.get('currency', 'RUB')
@@ -55,42 +56,41 @@ def basic_search_flights(app):
             if not origin or not destination or not departure_at:
                 return jsonify({'data': [], 'error': 'Missing required parameters'})
 
-            origin_iatas = get_city_iata(origin.split(',')[0].strip())
-            destination_iatas = get_city_iata(destination.split(',')[0].strip())
-            log(f"Resolved IATA: origin={origin_iatas}, destination={destination_iatas}")
+            origin_iata = city_to_iata(origin.split(',')[0].strip())
+            destination_iata = city_to_iata(destination.split(',')[0].strip())
+            log(f"Resolved IATA: origin={origin_iata}, destination={destination_iata}")
 
-            if origin_iatas is None or destination_iatas is None:
+            if origin_iata is None or destination_iata is None:
                 return jsonify({'data': [], 'error': 'Invalid city IATA code'})
 
             token = 'e04ebfd8fc1d1ef9e07d285cc398788d'
             all_flights = []
             url = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
             page = 1
-            max_pages = 10  # Ограничим количество страниц для избежания бесконечного цикла
+            max_pages = 10
 
-            for orig_iata in (origin_iatas if isinstance(origin_iatas, list) else [origin_iatas]):
-                for dest_iata in (destination_iatas if isinstance(destination_iatas, list) else [destination_iatas]):
-                    while page <= max_pages:
-                        params = {
-                            'origin': orig_iata,
-                            'destination': dest_iata,
-                            'departure_at': departure_at,
-                            'currency': currency,
-                            'limit': 100,  # Максимальный лимит
-                            'page': page,
-                            'one_way': 'false',
-                            'token': token,
-                        }
-                        response = requests.get(url, params=params)
-                        response.raise_for_status()
-                        data = response.json()
-                        raw_flights = data.get('data', [])
-                        if not raw_flights:  # Если больше нет данных, выходим из цикла
-                            break
-                        all_flights.extend(raw_flights)
-                        page += 1
+            while page <= max_pages:
+                params = {
+                    'origin': origin_iata,
+                    'destination': destination_iata,
+                    'departure_at': departure_at,
+                    'currency': currency,
+                    'limit': 100,
+                    'page': page,
+                    'one_way': 'false',
+                    'token': token,
+                }
+                response = requests.get(url, params=params)
+                response.raise_for_status()
+                data = response.json()
+                raw_flights = data.get('data', [])
+                if not raw_flights:
+                    break
+                all_flights.extend(raw_flights)
+                page += 1
 
             log(f"Raw flights count: {len(all_flights)}")
+            # log(f"Raw flights: {all_flights}")
             log(f"Raw prices: {[float(item.get('price', 0)) for item in all_flights]}")
 
             flights = []
@@ -111,21 +111,33 @@ def basic_search_flights(app):
 
                 try:
                     departure_time = datetime.datetime.fromisoformat(item['departure_at'].replace('Z', '+00:00'))
-                    duration = datetime.timedelta(minutes=item.get('duration', 0))
-                    arrival_time = departure_time + duration
+                    flight_date = departure_time.date().isoformat()
+                    departure_time_str = departure_time.strftime('%H:%M')
+
+                    duration_minutes = item.get('duration_to', 0)
+                    duration_str, arrival_time = calculate_flight_duration(
+                        origin=item.get('origin'),
+                        destination=item.get('destination'),
+                        departure_time=departure_time_str,
+                        duration_minutes=duration_minutes,
+                        flight_date=flight_date
+                    )
 
                     flights.append({
-                        'origin': item.get('origin'),
-                        'destination': item.get('destination'),
+                        'origin': origin,                           # Точка вылета в формате: Город, страна
+                        'destination': destination,                 # Точка прилета в формате: Город, страна
+                        'origin_airport': item.get('origin_airport'),           # IATA код аэропорта вылета
+                        'destination_airport': item.get('destination_airport'), # IATA код аэропорта прилета
                         'price': price,
                         'currency': currency,
                         'airline': item.get('airline'),
                         'flight_number': item.get('flight_number'),
-                        'departure_at': item.get('departure_at'),
-                        'arrival_at': arrival_time.isoformat(),
-                        'duration': item.get('duration'),
+                        'departure_at': departure_time_str,
+                        'return_at': arrival_time,  # Теперь в формате HH:MM
+                        'duration': duration_str,  # В формате "Xч Yмин"
                         'transfers': item.get('transfers'),
-                        'link': f"https://www.aviasales.ru{item.get('link')}"
+                        'link': f"https://www.aviasales.ru{item.get('link')}",
+                        'flightDate': flight_date
                     })
                 except (KeyError, TypeError, ValueError) as e:
                     log(f"Skipping invalid flight data: {e}")
@@ -155,9 +167,11 @@ def basic_search_flights(app):
 
     @app.route('/api/test_search_flights')
     def test_search_flights():
-        origin = 'MOW'
-        destination = 'SVX'
-        departure_at = '2025-05-30'
+        origin = 'Москва, Россия'
+        destination = 'Екатеринбург, Россия'
+        origin_iata = city_to_iata(origin.split(',')[0].strip())
+        destination_iata = city_to_iata(destination.split(',')[0].strip())
+        departure_at = '2025-06-07'
         currency = 'RUB'
         limit = 100
 
@@ -167,35 +181,60 @@ def basic_search_flights(app):
 
         url = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
         params = {
-            'origin': origin,
-            'destination': destination,
+            'origin': origin_iata,
+            'destination': destination_iata,
             'departure_at': departure_at,
             'currency': currency,
             'limit': limit,
             'token': token,
-            'one_way': 'false',
+            'one_way': 'false',  # Изменим на true, чтобы получить только прямой рейс
         }
 
-        response = requests.get(url, params=params)
-        if response.status_code != 200:
-            return jsonify({'error': 'Failed to fetch data from Aviasales API'}), response.status_code
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            log(f"API response in test_search_flights: {data}")
+            if not data.get('success'):
+                return jsonify({'error': 'Aviasales API returned an error'}), 500
 
-        data = response.json()
-        if not data.get('success'):
-            return jsonify({'error': 'Aviasales API returned an error'}), 500
+            flights = []
+            for item in data.get('data', []):
+                try:
+                    departure_time = datetime.datetime.fromisoformat(item['departure_at'].replace('Z', '+00:00'))
+                    flight_date = departure_time.date().isoformat()
+                    departure_time_str = departure_time.strftime('%H:%M')
 
-        flights = []
-        for item in data.get('data', []):
-            flights.append({
-                'origin': item.get('origin'),
-                'destination': item.get('destination'),
-                'price': item.get('price'),
-                'airline': item.get('airline'),
-                'flight_number': item.get('flight_number'),
-                'departure_at': item.get('departure_at'),
-                'return_at': item.get('return_at'),
-                'transfers': item.get('transfers'),
-                'link': f"https://www.aviasales.ru{item.get('link')}"
-            })
+                    duration_minutes = item.get('duration_to', 0)
+                    duration_str, arrival_time = calculate_flight_duration(
+                        origin=item.get('origin'),
+                        destination=item.get('destination'),
+                        departure_time=departure_time_str,
+                        duration_minutes=duration_minutes,
+                        flight_date=flight_date
+                    )
 
-        return jsonify({'data': flights})
+                    flights.append({
+                        'origin': origin,
+                        'destination': destination,
+                        'origin_airport': item.get('origin_airport'),
+                        'destination_airport': item.get('destination_airport'),
+                        'price': item.get('price'),
+                        'airline': item.get('airline'),
+                        'flight_number': item.get('flight_number'),
+                        'departure_at': departure_time_str,
+                        'return_at': arrival_time,  # Теперь в формате HH:MM
+                        'duration': duration_str,  # В формате "Xч Yмин"
+                        'transfers': item.get('transfers'),
+                        'link': f"https://www.aviasales.ru{item.get('link')}",
+                        'flightDate': flight_date
+                    })
+                except (KeyError, TypeError, ValueError) as e:
+                    log(f"Skipping invalid flight data in test_search_flights: {e}")
+                    continue
+
+            return jsonify({'data': flights})
+
+        except requests.exceptions.RequestException as e:
+            log(f"Error in test_search_flights API request: {str(e)}")
+            return jsonify({'error': f'Failed to fetch data from Aviasales API: {str(e)}'}), 500
